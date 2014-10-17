@@ -5,6 +5,7 @@ def _opts():
     return {
         'show_labels': True,
         'max_zoom': 12,
+        'base_layer': "MapQuestOpen.Aerial",
     }
 
 

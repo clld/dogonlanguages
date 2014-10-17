@@ -20,5 +20,6 @@ def main(global_config, **settings):
         ('values', partial(menu_item, 'values', label='Lexicon')),
         ('parameters', partial(menu_item, 'parameters', label='Thesaurus')),
         ('contributors', partial(menu_item, 'contributors', label='Project members')),
+        ('sources', partial(menu_item, 'sources', label='Bibliography')),
     )
     return config.make_wsgi_app()

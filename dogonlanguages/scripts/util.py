@@ -1,4 +1,68 @@
+# coding=utf8
 from __future__ import unicode_literals
+import re
+from hashlib import md5
+from io import open
+import shutil
+
+import requests
+
+from clld.lib.bibtex import Record
+
+
+def get_thumbnail(args, filename):
+    path = args.data_file('thumbnails', filename)
+    if not path.exists():
+        print path
+        return
+        r = requests.get('http://dogonlanguages.org/thumbnails/' + filename, stream=True)
+        if r.status_code == 200:
+            with open(path, 'wb') as f:
+                r.raw.decode_content = True
+                shutil.copyfileobj(r.raw, f)
+        else:
+            return
+    with open(path, 'rb') as f:
+        return f.read()
+
+
+KV_PATTERN = re.compile('(?P<key>[A-Za-z]+)\s*\=\s*\{(?P<value>.*)$', re.MULTILINE)
+
+
+def fixed(mess):
+    id_ = md5('@'.encode('utf8') + mess.encode('utf8'))
+    for messyid in ['BibTeX', 'Indiana University']:
+        mess = mess.replace(messyid + ',\n', '')
+    genre, rem = mess.split('{', 1)
+    assert rem.endswith('}')
+    rem = rem[:-1].strip()
+    kw = {}
+    for kv in re.split('},\n', rem):
+        kv = kv.strip()
+        if kv.endswith('}'):
+            kv = kv[:-1]
+        m = KV_PATTERN.match(kv)
+        if not m:
+            #print kv
+            continue
+        if m.group('value').strip():
+            kw[m.group('key').lower()] = m.group('value').strip()
+    if kw:
+        return Record(genre, id_.hexdigest().decode('ascii'), **kw)
+
+
+def get_bib(args):
+    ids = {}
+    records = open(args.data_file('refs.bib'), encoding='utf8').read().split('\n@')
+    for record in records:
+        if record.strip():
+            rec = fixed(record.strip())
+            if rec:
+                if rec.id not in ids:
+                    ids[rec.id] = 1
+                    yield rec
+                else:
+                    print rec
 
 
 CONTRIBUTORS = {
@@ -47,3 +111,84 @@ CONTRIBUTORS = {
         "valiant (at) brandeis.edu",
         None),
     }
+
+
+class Entry(object):
+    def __init__(self, **kw):
+        for k, v in kw.items():
+            setattr(self, k, v)
+
+
+def ff_to_standard(d):
+    kw = {}
+    for k, v in FIELD_MAP.items():
+        if v:
+            kw[v] = d.get(k)
+    return Entry(**kw)
+
+
+FIELD_MAP = {
+    "code (Eng)": "code_eng",
+    "subcode (Eng)": "subcode_eng",
+    "code (fr)": "code_fr",
+    "sous-code (fr)": "sous_code_fr",
+    "code #": "code",
+    "subcode #": "subcode",
+    "order": "subsubcode",
+    "short": "short",
+    "court": "court",
+    "ref#": "ref",
+    "jpg": "jpg",
+    "video": "video",
+    "date": "date",
+    "comment": "comment",
+    "English": "English",
+    "français": "Francais",
+    "core": "core",
+
+    "Toro Tegu (Toupere, JH)": "Toro_Tegu",
+    "Ben Tey (Beni, JH)": "Ben_Tey",
+    "Bankan-Tey (Walo, JH)": "Bankan_Tey",
+    "Nanga (Anda, JH)": "Nanga",
+    "Jamsay (alphabet)": "Jamsay_Alphabet",
+    "Jamsay (Douentza area, JH)": "Jamsay",
+    "Perge Tegu (Pergué, JH)": "Perge_Tegu",
+    "Gourou (Kiri, JH)": "Gourou",
+    "Jamsay (Mondoro, JH)": "Jamsay_Mondoro",
+    "Togo-Kan (Koporo-pen, JH with BT)": "Togo_Kan",
+    "Yorno-So (Yendouma, JH and DT)": "Yorno_So",
+    "Ibi-So (JH)": "",
+    "Donno-So": "",
+    "Tomo Kan (Segue)": "Tomo_Kan",
+    "Tomo Kan (Diangassagou)": "Tomo_Kan_Diangassagou",
+    "Tommo So (Tongo Tongo, combined)": "Tommo_So",
+    "Tommo So (Tongo Tongo, JH)": "",
+
+    "Tommo-So (Tongo Tongo, LM)": "",
+    "Dogul Dom (Bendiely, BC)": "Dogul_Dom",
+    "Tebul Ure (JH)": "Tebul_Ure",
+    "Yanda Dom (Yanda, JH)": "Yanda_Dom",
+    "Najamba (Kubewel-Adia, JH)": "Najamba",
+    "Tiranige (Boui, JH)": "Tiranige",
+    "Mombo JH": "Mombo",
+    "Mombo (Songho, KP)": "",
+    "Ampari (Nando, JH)": "Ampari",
+    "Ampari (Nando, KP)": "",
+    "Bunoge (Boudou)": "Bunoge",
+    "Penange (Pinia)": "Penange",
+
+    "Bangime (Bounou, JH)": "",
+    "Bangime (Bounou, AH)": "",
+
+    "HS Songhay": "",
+    "TSK Songhay": "",
+    "species": "species",
+    "family": "family",
+}
+"""
+    book p.,
+    synonymy,
+    comment,
+    domain,
+    specimen
+"""

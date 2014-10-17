@@ -1,4 +1,5 @@
 from zope.interface import implementer
+from pyramid.decorator import reify
 from sqlalchemy import (
     Column,
     String,
@@ -35,9 +36,19 @@ class Concept(Parameter, CustomModelMixin):
     """
     pk = Column(Integer, ForeignKey('parameter.pk'), primary_key=True)
 
+    ref = Column(Integer, nullable=False, unique=True)
     core = Column(Boolean, nullable=False)
     subcode_pk = Column(Integer, ForeignKey('subcode.pk'))
     subcode = relationship(SubCode, backref='concepts')
+
+    ff = Column(Boolean, default=False)
+    species = Column(Unicode)
+    family = Column(Unicode)
+
+    @reify
+    def thumbnail(self):
+        if self._files:
+            return self._files[0]
 
 
 @implementer(interfaces.IValue)

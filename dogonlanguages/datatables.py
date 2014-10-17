@@ -4,7 +4,10 @@ from clld.web.datatables.value import Values
 from clld.web.datatables.parameter import Parameters
 from clld.web.datatables.contributor import Contributors, NameCol, UrlCol
 from clld.web.datatables.base import LinkCol, Col, IdCol
+from clld.web.util.htmllib import HTML
+from clld.db.meta import DBSession
 from clld.db.models import common
+from clld.db.util import get_distinct_values
 
 from dogonlanguages import models
 
@@ -18,18 +21,31 @@ class ProjectMembers(Contributors):
         ]
 
 
+class ThumbnailCol(Col):
+    __kw__ = dict(bSearchable=False, bSortable=False)
+
+    def format(self, item):
+        item = self.get_obj(item)
+        if item.thumbnail:
+            return HTML.img(class_='img-rounded', src=self.dt.req.file_url(item.thumbnail))
+        return ''
+
+
 class Concepts(Parameters):
     def base_query(self, query):
         return query.join(models.SubCode).join(models.Code)
 
     def col_defs(self):
         return [
-            IdCol(self, 'ID'),
+            Col(self, 'ID', model_col=common.Parameter.id),
             LinkCol(self, 'gloss', model_col=common.Parameter.name),
+            ThumbnailCol(self, 'thumbnail'),
             Col(self, 'domain',
+                choices=get_distinct_values(models.Code.name),
                 get_object=lambda i: i.subcode.code,
                 model_col=models.Code.name),
             Col(self, 'subdomain',
+                choices=get_distinct_values(models.SubCode.name),
                 get_object=lambda i: i.subcode,
                 model_col=models.SubCode.name)
         ]
