@@ -114,7 +114,7 @@ def main(args):
     for concept in reader(args.data_file('fauna_Dogon_Unicode.csv'), delimiter=',', dicts=True):
         add(cids, gl, util.ff_to_standard(concept), data, names, contrib, ff=True)
 
-    for concept in reader(args.data_file('dogon_lexicon.csv'), delimiter=',', namedtuples=True):
+    for concept in reader(args.data_file('dogon_lexicon.csv'), delimiter=',', escapechar='\\', namedtuples=True):
         add(cids, gl, concept, data, names, contrib)
 
     ref_pattern = re.compile('(?P<ref>[0-9]{5})')
@@ -216,8 +216,11 @@ def add(cids, gl, concept, data, names, contrib, ff=False):
             language=lang,
             contribution=contrib,
             parameter=c)
-        for i, form in enumerate(nfilter(re.split('\s*,\s*', forms))):
-            v = common.Value(id='-'.join([cid, lid, str(i + 1)]), valueset=vs, name=form)
+        for i, form in enumerate(nfilter(util.split_words(forms))):
+            v = models.Counterpart(
+                id='-'.join([cid, lid, str(i + 1)]),
+                valueset=vs,
+                **util.parse_form(form))
 
     #
     # TODO: identify forms!

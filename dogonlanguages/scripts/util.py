@@ -10,6 +10,49 @@ import requests
 from clld.lib.bibtex import Record
 
 
+def split_words(s):
+    """
+    split string at , or ; if this is not within brackets.
+    """
+    s = re.sub('\s+', ' ', s)
+    chunk = ''
+    in_bracket = False
+
+    for c in s:
+        if c in ['(', '[']:
+            in_bracket = True
+        if c in [')', ']']:
+            in_bracket = False
+        if c in [',', ';'] and not in_bracket:
+            yield chunk
+            chunk = ''
+        else:
+            chunk += c
+    if chunk:
+        yield chunk
+
+
+def parse_form(form):
+    attrs = {}
+    parts = form.split('(', 1)
+    if len(parts) == 2:
+        attrs['name'] = parts[0].strip()
+        if not parts[1].endswith(')'):
+            if parts[1].endswith('"'):
+                parts[1] += ')'
+            else:
+                print '---->', parts[1]
+                return {'name': form}
+        comment = parts[1][:-1].strip()
+        if comment.startswith('"') and comment.endswith('"'):
+            attrs['description'] = comment[1:-1].strip()
+        else:
+            attrs['comment'] = comment
+    else:
+        attrs['name'] = form
+    return attrs
+
+
 def get_thumbnail(args, filename):
     path = args.data_file('thumbnails', filename)
     if not path.exists():

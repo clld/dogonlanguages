@@ -57,5 +57,6 @@ class Counterpart(Value, CustomModelMixin):
     """
     pk = Column(Integer, ForeignKey('value.pk'), primary_key=True)
 
+    comment = Column(Unicode)
     unit_pk = Column(Integer, ForeignKey('unit.pk'))
     unit = relationship(Unit, backref='counterparts')

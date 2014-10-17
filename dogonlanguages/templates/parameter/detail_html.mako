@@ -1,13 +1,36 @@
 <%inherit file="../${context.get('request').registry.settings.get('clld.app_template', 'app.mako')}"/>
 <%namespace name="util" file="../util.mako"/>
 <%! active_menu_item = "parameters" %>
-<%block name="title">${_('Parameter')} ${ctx.name}</%block>
+<%block name="title">Concept "${ctx.name}"</%block>
 
 <h2>${ctx.name}</h2>
 
-% if ctx.description:
-<p>${ctx.description}</p>
-% endif
+<table class="table table-nonfluid">
+    <thead>
+        <tr>
+            <th></th>
+            <th>English</th>
+            <th>French</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th>Gloss</th>
+            <td>${ctx.name}</td>
+            <td>${ctx.description}</td>
+        </tr>
+        <tr>
+            <th>Domain</th>
+            <td>${ctx.subcode.code.name}</td>
+            <td>${ctx.subcode.code.description}</td>
+        </tr>
+        <tr>
+            <th>Subdomain</th>
+            <td>${ctx.subcode.name}</td>
+            <td>${ctx.subcode.description}</td>
+        </tr>
+    </tbody>
+</table>
 
 % for chunk in [ctx._files[i:i + 3] for i in range(0, len(ctx._files), 3)]:
 <div class="row-fluid" id="images">

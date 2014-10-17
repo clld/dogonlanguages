@@ -114,6 +114,8 @@ class Words(Values):
                 get_object=lambda item: item.valueset.parameter.subcode,
                 model_col=models.SubCode.name),
             LinkCol(self, 'word', model_col=common.Value.name),
+            Col(self, 'literal meaning', model_col=common.Value.description),
+            Col(self, 'note', model_col=models.Counterpart.comment),
         ]
         return res
 
