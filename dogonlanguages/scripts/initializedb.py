@@ -34,6 +34,7 @@ f = [
 "core",  # 1 or 0
 ]
 
+
 LANGUAGES = [
     ("Toro_Tegu", 'toro1253'),
     ("Ben_Tey", 'bent1238'),
@@ -41,30 +42,30 @@ LANGUAGES = [
     ("Nanga", 'nang1261'),
     ("Jamsay_Alphabet", 'jams1239'),
     ("Jamsay", 'jams1239'),
-    ("Perge_Tegu", ''),
-    ("Gourou", ''),
-    ("Jamsay_Mondoro", ''),
+    ("Perge_Tegu", 'jams1239'),
+    ("Gourou", 'jams1239'),
+    ("Jamsay_Mondoro", 'jams1239'),
     ("Togo_Kan", ''),
-    ("Yorno_So", ''),
+    ("Yorno_So", 'toro1252'),
     # fauna has also:
-    #Ibi-So (JH),
-    #Donno-So,
+    #("Ibi-So (JH)", 'toro1252'),
+    #("Donno-So", 'donn1238'),
     ("Tomo_Kan", 'tomo1243'),
-    ("Tomo_Kan_Diangassagou", ''),
+    ("Tomo_Kan_Diangassagou", 'tomo1243'),
     ("Tommo_So", ''),
     #"Tommo So (Tongo Tongo, JH)",
     #"Tommo-So (Tongo Tongo, LM)",
     ("Dogul_Dom", 'dogu1235'),
     ("Tebul_Ure", 'tebu1239'),
     ("Yanda_Dom", 'yand1257'),
-    ("Najamba", ''),
+    ("Najamba", 'bond1248'),
     ("Tiranige", 'tira1258'),
     ("Mombo", 'momb1254'),
     ("Ampari", 'ampa1238'),
     ("Bunoge", 'buno1241'),
     ("Penange", 'pena1270'),
-    #"Bangime (Bounou, JH)",
-    #"Bangime (Bounou, AH)",
+    #("Bangime (Bounou, JH)", 'bang1363'),
+    #("Bangime (Bounou, AH)", 'bang1363'),
     # HS Songhay,
     # TSK Songhay,
 ]
@@ -135,6 +136,22 @@ def main(args):
                 f.create(files_dir, content)
                 count += 1
     print count, 'images detected'
+
+    count = 0
+    for i, vid in enumerate(args.data_file('video', 'mp4').files('*.mp4')):
+        match = ref_pattern.search(vid.basename())
+        if match:
+            ref = str(int(match.group('ref')))
+            if ref in data['Concept']:
+                concept = data['Concept'][ref]
+                f = common.Parameter_files(
+                    object=concept,
+                    id=str(i + 1) + '.mp4',
+                    name=vid.basename(),
+                    mime_type='video/mp4')
+                f.create(files_dir, open(vid, 'rb').read())
+                count += 1
+    print count, 'videos detected'
 
 
 def add(cids, gl, concept, data, names, contrib, ff=False):

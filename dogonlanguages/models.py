@@ -47,8 +47,15 @@ class Concept(Parameter, CustomModelMixin):
 
     @reify
     def thumbnail(self):
-        if self._files:
-            return self._files[0]
+        for f in self._files:
+            if f.mime_type.startswith('image'):
+                return self._files[0]
+
+    @reify
+    def video(self):
+        for f in self._files:
+            if f.mime_type.startswith('video'):
+                return self._files[0]
 
 
 @implementer(interfaces.IValue)

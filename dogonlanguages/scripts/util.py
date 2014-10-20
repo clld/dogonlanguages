@@ -4,10 +4,11 @@ import re
 from hashlib import md5
 from io import open
 import shutil
+from collections import defaultdict
 
 import requests
 
-from clld.lib.bibtex import Record
+from clld.lib.bibtex import Record, Database
 
 
 def split_words(s):
@@ -95,17 +96,24 @@ def fixed(mess):
 
 
 def get_bib(args):
-    ids = {}
-    records = open(args.data_file('refs.bib'), encoding='utf8').read().split('\n@')
-    for record in records:
-        if record.strip():
-            rec = fixed(record.strip())
-            if rec:
-                if rec.id not in ids:
-                    ids[rec.id] = 1
-                    yield rec
-                else:
-                    print rec
+    db = Database.from_file(args.data_file('Dogon.bib'), lowercase=True)
+    keys = defaultdict(int)
+    for rec in db:
+        keys[rec.id] += 1
+        rec.id = '%sx%s' % (rec.id, keys[rec.id])
+        yield rec
+
+    #ids = {}
+    #records = open(args.data_file('refs.bib'), encoding='utf8').read().split('\n@')
+    #for record in records:
+    #    if record.strip():
+    #        rec = fixed(record.strip())
+    #        if rec:
+    #            if rec.id not in ids:
+    #                ids[rec.id] = 1
+    #                yield rec
+    #            else:
+    #                print rec
 
 
 CONTRIBUTORS = {

@@ -2,6 +2,8 @@
 <%namespace name="util" file="../util.mako"/>
 <%! active_menu_item = "parameters" %>
 <%block name="title">Concept "${ctx.name}"</%block>
+<% images = [f for f in ctx._files if f.mime_type.startswith('image')] %>
+<% videos = [f for f in ctx._files if f.mime_type.startswith('video')] %>
 
 <h2>${ctx.name}</h2>
 
@@ -32,7 +34,19 @@
     </tbody>
 </table>
 
-% for chunk in [ctx._files[i:i + 3] for i in range(0, len(ctx._files), 3)]:
+% if videos:
+    % for vid in videos:
+<video id="video_${vid.pk}" class="video-js vjs-default-skin"
+       controls preload="auto" width="640" height="264"
+       ##poster="http://video-js.zencoder.com/oceans-clip.png"
+       data-setup='{"example_option":true}'>
+    <source src="${request.file_url(f)}" type='video/mp4' />
+    <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
+    </video>
+    % endfor
+% endif
+
+% for chunk in [images[i:i + 3] for i in range(0, len(images), 3)]:
 <div class="row-fluid" id="images">
 % for f in chunk:
     <div class="span4">

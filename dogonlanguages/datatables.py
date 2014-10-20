@@ -5,6 +5,7 @@ from clld.web.datatables.parameter import Parameters
 from clld.web.datatables.contributor import Contributors, NameCol, UrlCol
 from clld.web.datatables.base import LinkCol, Col, IdCol
 from clld.web.util.htmllib import HTML
+from clld.web.util.helpers import icon
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.db.util import get_distinct_values
@@ -28,6 +29,8 @@ class ThumbnailCol(Col):
         item = self.get_obj(item)
         if item.thumbnail:
             return HTML.img(class_='img-rounded', src=self.dt.req.file_url(item.thumbnail))
+        if item.video:
+            return icon('film')
         return ''
 
 
