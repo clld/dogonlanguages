@@ -31,7 +31,7 @@ class SubCode(Base, IdNameDescriptionMixin):
 # specialized common mapper classes
 #-----------------------------------------------------------------------------
 @implementer(interfaces.IParameter)
-class Concept(Parameter, CustomModelMixin):
+class Concept(CustomModelMixin, Parameter):
     """one row in what used to be the word-meaning association table
     """
     pk = Column(Integer, ForeignKey('parameter.pk'), primary_key=True)
@@ -59,7 +59,7 @@ class Concept(Parameter, CustomModelMixin):
 
 
 @implementer(interfaces.IValue)
-class Counterpart(Value, CustomModelMixin):
+class Counterpart(CustomModelMixin, Value):
     """one row in what used to be the word-meaning association table
     """
     pk = Column(Integer, ForeignKey('value.pk'), primary_key=True)
