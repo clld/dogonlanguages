@@ -36,7 +36,7 @@ class ThumbnailCol(Col):
 
 class Concepts(Parameters):
     def base_query(self, query):
-        return query.join(models.SubCode).join(models.Code)
+        return query.join(models.Subdomain).join(models.Domain)
 
     def col_defs(self):
         return [
@@ -44,13 +44,13 @@ class Concepts(Parameters):
             LinkCol(self, 'gloss', model_col=common.Parameter.name),
             ThumbnailCol(self, 'thumbnail'),
             Col(self, 'domain',
-                choices=get_distinct_values(models.Code.name),
-                get_object=lambda i: i.subcode.code,
-                model_col=models.Code.name),
+                choices=get_distinct_values(models.Domain.name),
+                get_object=lambda i: i.subdomain.domain,
+                model_col=models.Domain.name),
             Col(self, 'subdomain',
-                choices=get_distinct_values(models.SubCode.name),
-                get_object=lambda i: i.subcode,
-                model_col=models.SubCode.name)
+                choices=get_distinct_values(models.Subdomain.name),
+                get_object=lambda i: i.subdomain,
+                model_col=models.Subdomain.name)
         ]
 
 
@@ -68,14 +68,14 @@ class Words(Values):
 
         return query\
             .join(common.Parameter)\
-            .join(models.SubCode)\
-            .join(models.Code)\
+            .join(models.Subdomain)\
+            .join(models.Domain)\
             .options(
                 joinedload_all(
                     common.Value.valueset,
                     common.ValueSet.parameter,
-                    models.Concept.subcode,
-                    models.SubCode.code)
+                    models.Concept.subdomain,
+                    models.Subdomain.domain)
             )
 
     def col_defs(self):
@@ -85,12 +85,12 @@ class Words(Values):
                     self, 'concept',
                     get_object=lambda item: item.valueset.parameter,
                     model_col=common.Parameter.name),
-                Col(self, 'code',
-                    get_object=lambda item: item.valueset.parameter.subcode.code,
-                    model_col=models.Code.name),
-                Col(self, 'subcode',
-                    get_object=lambda item: item.valueset.parameter.subcode,
-                    model_col=models.SubCode.name),
+                Col(self, 'domain',
+                    get_object=lambda item: item.valueset.parameter.subdomain.domain,
+                    model_col=models.Domain.name),
+                Col(self, 'subdomain',
+                    get_object=lambda item: item.valueset.parameter.subdomain,
+                    model_col=models.Subdomain.name),
                 LinkCol(self, 'word', model_col=common.Value.name),
                 ]
         if self.parameter:
@@ -111,11 +111,11 @@ class Words(Values):
                 get_object=lambda item: item.valueset.parameter,
                 model_col=common.Parameter.name),
             Col(self, 'domain',
-                get_object=lambda item: item.valueset.parameter.subcode.code,
-                model_col=models.Code.name),
+                get_object=lambda item: item.valueset.parameter.subdomain.domain,
+                model_col=models.Domain.name),
             Col(self, 'subdomain',
-                get_object=lambda item: item.valueset.parameter.subcode,
-                model_col=models.SubCode.name),
+                get_object=lambda item: item.valueset.parameter.subdomain,
+                model_col=models.Subdomain.name),
             LinkCol(self, 'word', model_col=common.Value.name),
             Col(self, 'literal meaning', model_col=common.Value.description),
             Col(self, 'note', model_col=models.Counterpart.comment),

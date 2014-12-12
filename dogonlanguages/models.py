@@ -2,29 +2,25 @@ from zope.interface import implementer
 from pyramid.decorator import reify
 from sqlalchemy import (
     Column,
-    String,
     Unicode,
     Integer,
     Boolean,
     ForeignKey,
-    UniqueConstraint,
 )
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import relationship
 
 from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
 from clld.db.models.common import IdNameDescriptionMixin, Value, Unit, Parameter
 
 
-class Code(Base, IdNameDescriptionMixin):
+class Domain(Base, IdNameDescriptionMixin):
     pass
 
 
-class SubCode(Base, IdNameDescriptionMixin):
-    code_pk = Column(Integer, ForeignKey('code.pk'))
-    code = relationship(Code, backref='subcodes')
+class Subdomain(Base, IdNameDescriptionMixin):
+    domain_pk = Column(Integer, ForeignKey('domain.pk'))
+    domain = relationship(Domain, backref='subdomains')
 
 
 #-----------------------------------------------------------------------------
@@ -38,8 +34,8 @@ class Concept(Parameter, CustomModelMixin):
 
     ref = Column(Integer, nullable=False, unique=True)
     core = Column(Boolean, nullable=False)
-    subcode_pk = Column(Integer, ForeignKey('subcode.pk'))
-    subcode = relationship(SubCode, backref='concepts')
+    subdomain_pk = Column(Integer, ForeignKey('subdomain.pk'))
+    subdomain = relationship(Subdomain, backref='concepts')
 
     ff = Column(Boolean, default=False)
     species = Column(Unicode)
@@ -56,6 +52,11 @@ class Concept(Parameter, CustomModelMixin):
         for f in self._files:
             if f.mime_type.startswith('video'):
                 return self._files[0]
+
+    @property
+    def eol_url(self):
+        if self.jsondatadict.get('eol_id'):
+            return 'http://eol.org/%s' % self.jsondatadict['eol_id']
 
 
 @implementer(interfaces.IValue)

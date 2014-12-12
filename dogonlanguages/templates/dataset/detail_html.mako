@@ -1,12 +1,8 @@
 <%inherit file="../home_comp.mako"/>
+<%namespace name="util" file="../util.mako"/>
 
 <%def name="sidebar()">
-    <div class="well">
-        <h3>Sidebar</h3>
-        <p>
-            Content
-        </p>
-    </div>
+    ${util.cite()}
 </%def>
 
 <h2>Dogon and Bangime Linguistics</h2>

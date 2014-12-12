@@ -11,9 +11,6 @@ def main(global_config, **settings):
     """
     config = get_configurator('dogonlanguages', settings=settings)
     config.include('clldmpg')
-    config.include('dogonlanguages.datatables')
-    config.include('dogonlanguages.adapters')
-    config.include('dogonlanguages.maps')
     config.register_menu(
         ('dataset', partial(menu_item, 'dataset', label='Home')),
         ('languages', partial(menu_item, 'languages')),

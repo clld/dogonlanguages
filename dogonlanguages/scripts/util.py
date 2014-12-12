@@ -11,6 +11,22 @@ import requests
 from clld.lib.bibtex import Record, Database
 
 
+def update_species_data(species, d):
+    eol = d.get('eol')
+    if eol:
+        for an in eol.get('ancestors', []):
+            if not an.get('taxonRank'):
+                continue
+            for tr in ['family']:
+                if tr == an['taxonRank']:
+                    curr = getattr(species, tr)
+                    #if curr != an['scientificName']:
+                    #print(tr, ':', curr, '-->', an['scientificName'])
+                        #setattr(species, tr, an['scientificName'])
+
+        species.update_jsondata(eol_id=eol['identifier'])
+
+
 def split_words(s):
     """
     split string at , or ; if this is not within brackets.
@@ -55,7 +71,7 @@ def parse_form(form):
 
 
 def get_thumbnail(args, filename):
-    path = args.data_file('thumbnails', filename)
+    path = args.data_file('repos', 'thumbnails', filename)
     if not path.exists():
         print path
         return
@@ -96,24 +112,12 @@ def fixed(mess):
 
 
 def get_bib(args):
-    db = Database.from_file(args.data_file('Dogon.bib'), lowercase=True)
+    db = Database.from_file(args.data_file('repos', 'Dogon.bib'), lowercase=True)
     keys = defaultdict(int)
     for rec in db:
         keys[rec.id] += 1
         rec.id = '%sx%s' % (rec.id, keys[rec.id])
         yield rec
-
-    #ids = {}
-    #records = open(args.data_file('refs.bib'), encoding='utf8').read().split('\n@')
-    #for record in records:
-    #    if record.strip():
-    #        rec = fixed(record.strip())
-    #        if rec:
-    #            if rec.id not in ids:
-    #                ids[rec.id] = 1
-    #                yield rec
-    #            else:
-    #                print rec
 
 
 CONTRIBUTORS = {

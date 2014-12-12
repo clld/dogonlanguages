@@ -21,4 +21,7 @@ class Tests(TestWithApp):
         self.app.get('/values')
         self.app.get('/languages')
         self.app.get('/sources')
+        self.app.get_html('/parameters/201-10-15')
+        self.app.get_html('/parameters/201-10-10')
         self.app.get_html('/parameters/10-10-2')
+        self.app.get_json('/parameters/10-10-2.geojson')

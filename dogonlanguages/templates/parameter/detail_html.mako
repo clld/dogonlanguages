@@ -5,6 +5,15 @@
 <% images = [f for f in ctx._files if f.mime_type.startswith('image')] %>
 <% videos = [f for f in ctx._files if f.mime_type.startswith('video')] %>
 
+% if ctx.family:
+    <ul class="breadcrumb">
+        % for name in reversed(ctx.family.split(',')):
+            <li class="active">${name.strip()}</li> <span class="divider">/</span>
+        % endfor
+        <li class="active">${ctx.species} ${u.eol_link(request, ctx)}</li>
+    </ul>
+% endif
+
 <h2>${ctx.name}</h2>
 
 <table class="table table-nonfluid">
@@ -23,13 +32,13 @@
         </tr>
         <tr>
             <th>Domain</th>
-            <td>${ctx.subcode.code.name}</td>
-            <td>${ctx.subcode.code.description}</td>
+            <td>${ctx.subdomain.domain.name}</td>
+            <td>${ctx.subdomain.domain.description}</td>
         </tr>
         <tr>
             <th>Subdomain</th>
-            <td>${ctx.subcode.name}</td>
-            <td>${ctx.subcode.description}</td>
+            <td>${ctx.subdomain.name}</td>
+            <td>${ctx.subdomain.description}</td>
         </tr>
     </tbody>
 </table>
