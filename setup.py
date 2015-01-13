@@ -1,23 +1,14 @@
 from setuptools import setup, find_packages
 
-
 requires = [
-    'clld>=0.21.1',
+    'clld>=0.28',
     'clldmpg',
-    'pyramid>=1.5.1',
-    'SQLAlchemy>=0.9.7',
-    'transaction',
-    'pyramid_tm',
-    'zope.sqlalchemy',
-    'waitress',
-    'psycopg2',
 ]
 
 tests_require = [
     'WebTest >= 1.3.1', # py3 compat
     'mock',
 ]
-
 
 setup(name='dogonlanguages',
       version='0.0',
