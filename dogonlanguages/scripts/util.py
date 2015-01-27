@@ -5,10 +5,45 @@ from hashlib import md5
 from io import open
 import shutil
 from collections import defaultdict
+from subprocess import check_output
+from urllib import urlretrieve
 
 import requests
+from fuzzywuzzy import fuzz
+from purl import URL
 
-from clld.lib.bibtex import Record, Database
+from clld.lib.imeji import file_urls
+from clld.lib.bibtex import Record, Database, unescape
+
+
+def get_contributors(rec, data):
+    for author in re.split('\s+and\s+', unescape(rec['author'])):
+        for cid, obj in data['Contributor'].items():
+            if fuzz.token_sort_ratio(author, obj.name) >= 92:
+                yield cid
+
+
+class UrlResolver(object):
+    def __init__(self, args):
+        self.args = args
+        self.checksums = {}
+        for fname in args.data_file('docs').files():
+            self.checksums[fname.basename()] = check_output(
+                'md5sum "%s"' % fname, shell=True).split()[0]
+        for fname in args.data_file('docs', 'not_on_edmond').files():
+            self.checksums[fname.basename()] = check_output(
+                'md5sum "%s"' % fname, shell=True).split()[0]
+        self.edmond_urls = {d['md5']: d for d in file_urls(args.data_file('Edmond.xml'))}
+
+    def __call__(self, url_):
+        url = URL(url_)
+        if url.host() == 'dogonlanguages.org':
+            basename = url.path_segment(-1)
+            if basename in self.checksums:
+                checksum = self.checksums[basename]
+                if checksum in self.edmond_urls:
+                    return self.edmond_urls[checksum]
+        return url_
 
 
 def update_species_data(species, d):
@@ -146,7 +181,7 @@ CONTRIBUTORS = {
     #(includes a grammar and lexicon of Tiefo, a severely endangered Gur language of SW Burkina Faso)
     #Abbie's article in the Returned Peace Corps Volunteer Newsletter [pdf]
 
-    "Jeff Heath": ("""Prof. of Linguistics, University of Michigan (Ann Arbor) is a veteran of more than 14 years of on-location fieldwork. He began with Australian Aboriginal languages of eastern Arnhem Land (1970's), then did various topical projects on Jewish and Muslim dialects of Maghrebi Arabic (1980's). Since 1989 he has made annual trips to Mali where he has worked in succession on Hassaniya Arabic, riverine Songhay languages (Koyra Chiini, Koyraboro Senni), montane Songhay languages (Tondi Songway Kiini, Humburi Senni), and Tamashek (Berber family). Since 2005 he has focused on Dogon languages: Jamsay, Ben Tey, Bankan Tey, Bunoge, Najamba, Nanga, Penange, Tebul Ure, Tiranige, and Yanda Dom. During his 2011-12 fieldwork stint he has also been shooting and producing low-budget videos of cultural events and everyday practical activities, some of which can be viewed on the project website. He has also been mapping Dogon villages in collaboration with the LLMAP project at Eastern Michigan University, and has continued to work on local flora-fauna and native terms thereof. He is the author of A Grammar of Jamsay (Mouton, 2008), but his more recent Dogon grammars are currently disseminated on the project website.""",
+    "Jeffrey Heath": ("""Prof. of Linguistics, University of Michigan (Ann Arbor) is a veteran of more than 14 years of on-location fieldwork. He began with Australian Aboriginal languages of eastern Arnhem Land (1970's), then did various topical projects on Jewish and Muslim dialects of Maghrebi Arabic (1980's). Since 1989 he has made annual trips to Mali where he has worked in succession on Hassaniya Arabic, riverine Songhay languages (Koyra Chiini, Koyraboro Senni), montane Songhay languages (Tondi Songway Kiini, Humburi Senni), and Tamashek (Berber family). Since 2005 he has focused on Dogon languages: Jamsay, Ben Tey, Bankan Tey, Bunoge, Najamba, Nanga, Penange, Tebul Ure, Tiranige, and Yanda Dom. During his 2011-12 fieldwork stint he has also been shooting and producing low-budget videos of cultural events and everyday practical activities, some of which can be viewed on the project website. He has also been mapping Dogon villages in collaboration with the LLMAP project at Eastern Michigan University, and has continued to work on local flora-fauna and native terms thereof. He is the author of A Grammar of Jamsay (Mouton, 2008), but his more recent Dogon grammars are currently disseminated on the project website.""",
         "schweinehaxen (at) hotmail.com",
         "http://www-personal.umich.edu/~jheath/"),
 

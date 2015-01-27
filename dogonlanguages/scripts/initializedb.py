@@ -5,11 +5,13 @@ from collections import defaultdict
 import socket
 
 from sqlalchemy import create_engine
+from purl import URL
 
 from clld.scripts.util import initializedb, Data, bibtex2source
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.lib.dsv import reader
+from clld.lib.imeji import file_urls
 from clld.util import slug, nfilter, jsonload
 
 import dogonlanguages
@@ -114,10 +116,32 @@ def main(args):
             ord=i + 1,
             contributor=data['Contributor'][spec[0]]))
 
+    url_resolver = util.UrlResolver(args)
     contrib = data.add(common.Contribution, 'd', id='d', name='Dogon Languages')
-
+    project_docs = set()
     for rec in util.get_bib(args):
-        data.add(common.Source, rec.id, _obj=bibtex2source(rec))
+        obj = data.add(
+            models.Document,
+            rec.id,
+            _obj=bibtex2source(rec, cls=models.Document))
+        obj.project_doc = rec['keywords'] == 'DLP'
+        if obj.project_doc:
+            for i, cid in enumerate(util.get_contributors(rec, data)):
+                models.DocumentContributor(
+                    document=obj, contributor=data['Contributor'][cid], ord=i)
+        if obj.url:
+            url = URL(obj.url)
+            if url.host() == 'dogonlanguages.org':
+                project_docs.add(url.path_segment(-1))
+                res = url_resolver(rec['url'])
+                if isinstance(res, dict):
+                    obj.url = res['url']
+                else:
+                    obj.url = res
+
+    #print(len(project_docs))
+    #print(len(url_resolver.edmond_urls))
+    #return
 
     names = defaultdict(int)
     cids = {}

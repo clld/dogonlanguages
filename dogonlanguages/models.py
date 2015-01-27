@@ -8,10 +8,13 @@ from sqlalchemy import (
     ForeignKey,
 )
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.associationproxy import association_proxy
 
 from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
-from clld.db.models.common import IdNameDescriptionMixin, Value, Unit, Parameter
+from clld.db.models.common import (
+    IdNameDescriptionMixin, Value, Unit, Parameter, Source, Contributor,
+)
 
 
 class Domain(Base, IdNameDescriptionMixin):
@@ -68,3 +71,24 @@ class Counterpart(CustomModelMixin, Value):
     comment = Column(Unicode)
     unit_pk = Column(Integer, ForeignKey('unit.pk'))
     unit = relationship(Unit, backref='counterparts')
+
+
+@implementer(interfaces.ISource)
+class Document(CustomModelMixin, Source):
+    pk = Column(Integer, ForeignKey('source.pk'), primary_key=True)
+
+    # project docs will have an associated file!
+    project_doc = Column(Boolean)
+
+    contributors = association_proxy('contributor_assocs', 'contributor')
+
+
+class DocumentContributor(Base):
+    document_pk = Column(Integer, ForeignKey('document.pk'))
+    contributor_pk = Column(Integer, ForeignKey('contributor.pk'))
+
+    # contributors are ordered.
+    ord = Column(Integer, default=0)
+
+    document = relationship(Document, backref='contributor_assocs')
+    contributor = relationship(Contributor, lazy=False, backref='document_assocs')
