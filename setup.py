@@ -4,6 +4,7 @@ requires = [
     'clld>=0.30',
     'clldmpg',
     'psycopg2',
+    'fuzzywuzzy',
 ]
 
 tests_require = [
