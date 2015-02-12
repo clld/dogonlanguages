@@ -27,13 +27,16 @@ class UrlResolver(object):
     def __init__(self, args):
         self.args = args
         self.checksums = {}
-        for fname in args.data_file('docs').files():
-            self.checksums[fname.basename()] = check_output(
-                'md5sum "%s"' % fname, shell=True).split()[0]
-        for fname in args.data_file('docs', 'not_on_edmond').files():
-            self.checksums[fname.basename()] = check_output(
-                'md5sum "%s"' % fname, shell=True).split()[0]
-        self.edmond_urls = {d['md5']: d for d in file_urls(args.data_file('Edmond.xml'))}
+        if not args.data_file('docs').exists():
+            self.edmond_urls = {}
+        else:
+            for fname in args.data_file('docs').files():
+                self.checksums[fname.basename()] = check_output(
+                    'md5sum "%s"' % fname, shell=True).split()[0]
+            for fname in args.data_file('docs', 'not_on_edmond').files():
+                self.checksums[fname.basename()] = check_output(
+                    'md5sum "%s"' % fname, shell=True).split()[0]
+            self.edmond_urls = {d['md5']: d for d in file_urls(args.data_file('Edmond.xml'))}
 
     def __call__(self, url_):
         url = URL(url_)

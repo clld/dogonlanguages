@@ -124,7 +124,7 @@ def main(args):
             models.Document,
             rec.id,
             _obj=bibtex2source(rec, cls=models.Document))
-        obj.project_doc = rec['keywords'] == 'DLP'
+        obj.project_doc = rec.get('keywords') == 'DLP'
         if obj.project_doc:
             for i, cid in enumerate(util.get_contributors(rec, data)):
                 models.DocumentContributor(
