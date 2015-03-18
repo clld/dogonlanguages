@@ -58,8 +58,9 @@ class Concept(CustomModelMixin, Parameter):
 
     @property
     def eol_url(self):
-        if self.jsondatadict.get('eol_id'):
-            return 'http://eol.org/%s' % self.jsondatadict['eol_id']
+        eol_id = self.jsondata.get('eol_id')
+        if eol_id:
+            return 'http://eol.org/%s' % eol_id
 
 
 @implementer(interfaces.IValue)
