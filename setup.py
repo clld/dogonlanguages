@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 requires = [
-    'clld>=0.32',
-    'clldmpg',
+    'clld>=1.2.1',
+    'clldmpg>=0.8',
     'psycopg2',
     'fuzzywuzzy',
 ]

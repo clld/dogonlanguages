@@ -1,26 +1,18 @@
 from clld.web.maps import ParameterMap, Map
+from clld.util import dict_merged
 
 
-def _opts():
-    return {
-        'show_labels': True,
-        'max_zoom': 12,
-        'base_layer': "MapQuestOpen.Aerial",
-    }
+OPTIONS = {'show_labels': True, 'max_zoom': 12, 'base_layer': "MapQuestOpen.Aerial"}
 
 
 class LanguagesMap(Map):
     def get_options(self):
-        opts = Map.get_options(self)
-        opts.update(_opts())
-        return opts
+        return dict_merged(Map.get_options(self), **OPTIONS)
 
 
 class ConceptMap(ParameterMap):
     def get_options(self):
-        opts = ParameterMap.get_options(self)
-        opts.update(_opts())
-        return opts
+        return dict_merged(ParameterMap.get_options(self), **OPTIONS)
 
 
 def includeme(config):

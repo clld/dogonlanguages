@@ -1,6 +1,8 @@
 from functools import partial
 
-from clld.web.app import get_configurator, menu_item
+from pyramid.config import Configurator
+
+from clld.web.app import menu_item
 
 # we must make sure custom models are known at database initialization!
 from dogonlanguages import models
@@ -9,7 +11,7 @@ from dogonlanguages import models
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
-    config = get_configurator('dogonlanguages', settings=settings)
+    config = Configurator(settings=settings)
     config.include('clldmpg')
     config.register_menu(
         ('dataset', partial(menu_item, 'dataset', label='Home')),
