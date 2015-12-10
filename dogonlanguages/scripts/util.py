@@ -30,13 +30,15 @@ class UrlResolver(object):
         if not args.data_file('docs').exists():
             self.edmond_urls = {}
         else:
-            for fname in args.data_file('docs').files():
-                self.checksums[fname.basename()] = check_output(
-                    'md5sum "%s"' % fname, shell=True).split()[0]
-            for fname in args.data_file('docs', 'not_on_edmond').files():
-                self.checksums[fname.basename()] = check_output(
-                    'md5sum "%s"' % fname, shell=True).split()[0]
-            self.edmond_urls = {d['md5']: d for d in file_urls(args.data_file('Edmond.xml'))}
+            for fname in args.data_file('docs').iterdir():
+                if fname.is_file():
+                    self.checksums[fname.name] = check_output(
+                        'md5sum "%s"' % fname.as_posix().decode('utf8'), shell=True).split()[0]
+            for fname in args.data_file('docs', 'not_on_edmond').iterdir():
+                if fname.is_file():
+                    self.checksums[fname.name] = check_output(
+                        'md5sum "%s"' % fname.as_posix().decode('utf8'), shell=True).split()[0]
+            self.edmond_urls = {d['md5']: d for d in file_urls(args.data_file('Edmond.xml').as_posix())}
 
     def __call__(self, url_):
         url = URL(url_)
@@ -109,7 +111,7 @@ def parse_form(form):
 
 
 def get_thumbnail(args, filename):
-    path = args.data_file('repos', 'thumbnails', filename)
+    path = args.data_file('repos', 'thumbnails', filename.encode('utf8'))
     if not path.exists():
         print path
         return
@@ -120,7 +122,7 @@ def get_thumbnail(args, filename):
                 shutil.copyfileobj(r.raw, f)
         else:
             return
-    with open(path, 'rb') as f:
+    with open(path.as_posix(), 'rb') as f:
         return f.read()
 
 

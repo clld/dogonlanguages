@@ -6,13 +6,14 @@ import socket
 
 from sqlalchemy import create_engine
 from purl import URL
+from clldutils.dsv import reader
+from clldutils.misc import slug, nfilter
+from clldutils import jsonlib
 
 from clld.scripts.util import initializedb, Data, bibtex2source
 from clld.db.meta import DBSession
 from clld.db.models import common
-from clld.lib.dsv import reader
 from clld.lib.imeji import file_urls
-from clld.util import slug, nfilter, jsonload
 
 import dogonlanguages
 from dogonlanguages import models
@@ -80,7 +81,8 @@ LANGUAGES = [
 
 def main(args):
     files_dir = args.data_file('files')
-    files_dir.mkdir_p()
+    if not files_dir.exists():
+        files_dir.mkdir(parents=True)
     if astroman:
         gl = create_engine('postgresql://robert@/glottolog3')
     else:
@@ -90,9 +92,9 @@ def main(args):
     dataset = common.Dataset(
         id=dogonlanguages.__name__,
         name="Dogon and Bangime Linguistics",
-        publisher_name ="Max Planck Institute for Evolutionary Anthropology",
-        publisher_place="Leipzig",
-        publisher_url="http://www.eva.mpg.de",
+        publisher_name="Max Planck Institute for the Science of Human History",
+        publisher_place="Jena",
+        publisher_url="http://shh.mpg.de",
         license="http://creativecommons.org/licenses/by/4.0/",
         domain='dogonlanguages.clld.org',
         jsondata={
@@ -282,7 +284,7 @@ def prime_cache(args):
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
     """
-    sdata = jsonload(args.data_file('repos', 'classification.json'))
+    sdata = jsonlib.load(args.data_file('repos', 'classification.json'))
     for species in DBSession.query(models.Concept).filter(models.Concept.ff == True):
         if species.id in sdata:
             util.update_species_data(species, sdata[species.id])
