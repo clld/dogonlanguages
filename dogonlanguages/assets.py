@@ -1,9 +1,10 @@
 from clld.web.assets import environment
-from path import path
+from clldutils.path import Path
 
 import dogonlanguages
 
 
 environment.append_path(
-    path(dogonlanguages.__file__).dirname().joinpath('static'), url='/dogonlanguages:static/')
+    Path(dogonlanguages.__file__).parent.joinpath('static').as_posix(),
+    url='/dogonlanguages:static/')
 environment.load_path = list(reversed(environment.load_path))

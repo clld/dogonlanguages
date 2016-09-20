@@ -6,6 +6,8 @@ from clld.web.app import menu_item
 
 # we must make sure custom models are known at database initialization!
 from dogonlanguages import models
+from dogonlanguages.interfaces import IVillage
+from dogonlanguages import views
 
 
 def main(global_config, **settings):
@@ -18,7 +20,16 @@ def main(global_config, **settings):
         ('languages', partial(menu_item, 'languages')),
         ('values', partial(menu_item, 'values', label='Lexicon')),
         ('parameters', partial(menu_item, 'parameters', label='Thesaurus')),
+        ('villages', partial(menu_item, 'villages', label='Villages')),
         ('contributors', partial(menu_item, 'contributors', label='Project members')),
         ('sources', partial(menu_item, 'sources', label='Bibliography')),
+        ('bangime', partial(menu_item, 'bangime', label='Bangime')),
+        ('other', partial(menu_item, 'other', label='Other Languages')),
     )
+    config.register_resource('village', models.Village, IVillage, with_index=True)
+    # must register snippet adapter for villages!
+
+    config.add_page('bangime')
+    config.add_page('other')
+
     return config.make_wsgi_app()

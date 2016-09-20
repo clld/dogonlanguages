@@ -3,14 +3,19 @@ from sqlalchemy.orm import joinedload_all
 from clld.web.datatables.value import Values
 from clld.web.datatables.parameter import Parameters
 from clld.web.datatables.contributor import Contributors, NameCol, UrlCol
-from clld.web.datatables.base import LinkCol, Col, IdCol
+from clld.web.datatables.language import Languages
+from clld.web.datatables.base import LinkCol, Col, IdCol, DataTable
 from clld.web.util.htmllib import HTML
 from clld.web.util.helpers import icon
-from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.db.util import get_distinct_values
 
 from dogonlanguages import models
+
+
+class DogonLanguages(Languages):
+    def base_query(self, query):
+        return Languages.base_query(self, query).filter(models.Languoid.in_project == True)
 
 
 class ProjectMembers(Contributors):
@@ -123,7 +128,13 @@ class Words(Values):
         return res
 
 
+class Villages(DataTable):
+    pass
+
+
 def includeme(config):
     config.register_datatable('contributors', ProjectMembers)
+    config.register_datatable('languages', DogonLanguages)
     config.register_datatable('parameters', Concepts)
     config.register_datatable('values', Words)
+    config.register_datatable('villages', Villages)

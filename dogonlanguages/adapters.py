@@ -1,7 +1,14 @@
 from __future__ import unicode_literals, division, absolute_import, print_function
 
+from sqlalchemy.orm import joinedload
+
 from clld.interfaces import IParameter
-from clld.web.adapters import GeoJsonParameter
+from clld.web.adapters import GeoJsonParameter, GeoJson
+from clld.db.meta import DBSession
+from clld import interfaces
+
+from dogonlanguages.interfaces import IVillage
+from dogonlanguages.models import Village
 
 
 class GeoJsonConcept(GeoJsonParameter):
@@ -11,5 +18,12 @@ class GeoJsonConcept(GeoJsonParameter):
             'label': ', '.join(v.name for v in valueset.values)}
 
 
+class GeoJsonVillages(GeoJson):
+    def feature_iterator(self, ctx, req):
+        return DBSession.query(Village).options(joinedload(Village.languoid))
+
+
 def includeme(config):
     config.register_adapter(GeoJsonConcept, IParameter)
+    config.register_adapter(
+        GeoJsonVillages, IVillage, interfaces.IIndex, name=GeoJson.mimetype)

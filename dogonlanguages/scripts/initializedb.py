@@ -2,26 +2,24 @@ from __future__ import unicode_literals
 import sys
 import re
 from collections import defaultdict
-import socket
 
-from sqlalchemy import create_engine
 from purl import URL
 from clldutils.dsv import reader
 from clldutils.misc import slug, nfilter
 from clldutils import jsonlib
+from clldutils.path import Path
 
 from clld.scripts.util import initializedb, Data, bibtex2source
 from clld.db.meta import DBSession
 from clld.db.models import common
-from clld.lib.imeji import file_urls
+try:
+    from pyglottolog.api import Glottolog
+except ImportError:
+    Glottolog = None
 
 import dogonlanguages
 from dogonlanguages import models
 from dogonlanguages.scripts import util
-
-
-# is this robert's machine?
-astroman = socket.gethostname() == 'astroman'
 
 
 f = [
@@ -50,17 +48,17 @@ LANGUAGES = [
     ("Nanga", 'nang1261'),
     ("Jamsay_Alphabet", 'jams1239'),
     ("Jamsay", 'jams1239'),
-    ("Perge_Tegu", 'jams1239'),
-    ("Gourou", 'jams1239'),
+    ("Perge_Tegu", 'perg1234'),
+    ("Gourou", 'guru1265'),
     ("Jamsay_Mondoro", 'jams1239'),  # not different
-    ("Togo_Kan", ''),
-    ("Yorno_So", 'toro1252'),
+    ("Togo_Kan", 'togo1254'),
+    ("Yorno_So", 'yorn1234'),
     # fauna has also:
-    #("Ibi-So (JH)", 'toro1252'),
+    #("Ibi-So (JH)", 'ibis1234'),
     #("Donno-So", 'donn1238'),
     ("Tomo_Kan", 'tomo1243'),
     ("Tomo_Kan_Diangassagou", 'tomo1243'),  # not different
-    ("Tommo_So", ''),
+    ("Tommo_So", 'tomm1242'),
     #"Tommo So (Tongo Tongo, JH)",
     #"Tommo-So (Tongo Tongo, LM)",
     ("Dogul_Dom", 'dogu1235'),
@@ -80,13 +78,16 @@ LANGUAGES = [
 
 
 def main(args):
+    if Glottolog:
+        glottolog = Glottolog(
+            Path(dogonlanguages.__file__).parent.parent.parent.parent.joinpath(
+                'glottolog3', 'glottolog'))
+        languoids = {l.id: l for l in glottolog.languoids()}
+    else:
+        languoids = {}
     files_dir = args.data_file('files')
     if not files_dir.exists():
         files_dir.mkdir(parents=True)
-    if astroman:
-        gl = create_engine('postgresql://robert@/glottolog3')
-    else:
-        gl = None
     data = Data()
 
     dataset = common.Dataset(
@@ -148,10 +149,32 @@ def main(args):
     names = defaultdict(int)
     cids = {}
     for concept in reader(args.data_file('repos', 'fauna_Dogon_Unicode.csv'), delimiter=',', dicts=True):
-        add(cids, gl, util.ff_to_standard(concept), data, names, contrib, ff=True)
+        add(languoids, cids, util.ff_to_standard(concept), data, names, contrib, ff=True)
 
     for concept in reader(args.data_file('repos', 'dogon_lexicon.csv'), delimiter=',', escapechar='\\', namedtuples=True):
-        add(cids, gl, concept, data, names, contrib)
+        add(languoids, cids, concept, data, names, contrib)
+
+    for lat, lon, d in util.gps(args):
+        key = slug(d['OfficialVillageName'])
+        if key not in data['Village']:
+            if d['glottocode']:
+                lang = data['Languoid'].get(d['glottocode'])
+                if not lang:
+                    gl_lang = languoids[d['glottocode']]
+                    lang = data.add(
+                        models.Languoid, gl_lang.id, id=gl_lang.id, name=gl_lang.name, in_project=False, family=gl_lang.family.name if gl_lang.family else gl_lang.name)
+            else:
+                lang = None
+            data.add(
+                models.Village, key,
+                id=key,
+                name=d['OfficialVillageName'],
+                description=d['social info'],
+                latitude=lat,
+                longitude=lon,
+                languoid=lang,
+                jsondata=d,
+            )
 
     ref_pattern = re.compile('(?P<ref>[0-9]{5})')
     count = 0
@@ -189,7 +212,7 @@ def main(args):
     #print count, 'videos detected'
 
 
-def add(cids, gl, concept, data, names, contrib, ff=False):
+def add(languoids, cids, concept, data, names, contrib, ff=False):
     domain = data['Domain'].get(concept.code)
     if domain is None:
         domain = data.add(
@@ -246,31 +269,29 @@ def add(cids, gl, concept, data, names, contrib, ff=False):
         return
 
     for l, gc in LANGUAGES:
-        if gc and gl:
-            lat, lon = gl.execute(
-                'select latitude, longitude from language where id = %s', (gc,))\
-                .fetchone()
-        else:
-            lat, lon = None, None
-        lid = slug(l)
-        lang = data['Language'].get(lid)
+        gl_lang = languoids[gc]
+        lat, lon = gl_lang.latitude, gl_lang.longitude
+        lang = data['Languoid'].get(gc)
         if lang is None:
             lang = data.add(
-                common.Language, lid,
-                id=lid, name=l.replace('_', ' '), latitude=lat, longitude=lon)
+                models.Languoid, gc,
+                id=gc, name=l.replace('_', ' '), latitude=lat, longitude=lon,
+                family=gl_lang.family.name if gl_lang else l,
+            )
 
         forms = (getattr(concept, l) or '').strip()
         if not forms:
             continue
 
+        # FIXME: distinguish varieties as contributions!?
         vs = common.ValueSet(
-            id='-'.join([lid, cid]),
+            id='-'.join([slug(l), cid]),
             language=lang,
             contribution=contrib,
             parameter=c)
         for i, form in enumerate(nfilter(util.split_words(forms))):
             v = models.Counterpart(
-                id='-'.join([cid, lid, str(i + 1)]),
+                id='-'.join([cid, slug(l), str(i + 1)]),
                 valueset=vs,
                 **util.parse_form(form))
 

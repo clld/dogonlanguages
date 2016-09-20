@@ -1,3 +1,5 @@
+from __future__ import print_function, division, unicode_literals
+
 from zope.interface import implementer
 from pyramid.decorator import reify
 from sqlalchemy import (
@@ -6,6 +8,8 @@ from sqlalchemy import (
     Integer,
     Boolean,
     ForeignKey,
+    Float,
+    CheckConstraint,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -13,8 +17,10 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
 from clld.db.models.common import (
-    IdNameDescriptionMixin, Value, Unit, Parameter, Source, Contributor,
+    IdNameDescriptionMixin, Value, Unit, Parameter, Source, Contributor, Language,
 )
+
+from dogonlanguages.interfaces import IVillage
 
 
 class Domain(Base, IdNameDescriptionMixin):
@@ -29,6 +35,13 @@ class Subdomain(Base, IdNameDescriptionMixin):
 #-----------------------------------------------------------------------------
 # specialized common mapper classes
 #-----------------------------------------------------------------------------
+@implementer(interfaces.ILanguage)
+class Languoid(CustomModelMixin, Language):
+    pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
+    in_project = Column(Boolean, default=True)
+    family = Column(Unicode)
+
+
 @implementer(interfaces.IParameter)
 class Concept(CustomModelMixin, Parameter):
     """one row in what used to be the word-meaning association table
@@ -93,3 +106,17 @@ class DocumentContributor(Base):
 
     document = relationship(Document, backref='contributor_assocs')
     contributor = relationship(Contributor, lazy=False, backref='document_assocs')
+
+
+@implementer(IVillage)
+class Village(Base, IdNameDescriptionMixin):
+    latitude = Column(
+        Float(),
+        CheckConstraint('-90 <= latitude and latitude <= 90'),
+        doc='geographical latitude in WGS84')
+    longitude = Column(
+        Float(),
+        CheckConstraint('-180 <= longitude and longitude <= 180 '),
+        doc='geographical longitude in WGS84')
+    languoid_pk = Column(Integer, ForeignKey('languoid.pk'))
+    languoid = relationship(Languoid, backref='villages')

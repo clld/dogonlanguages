@@ -6,13 +6,12 @@ from io import open
 import shutil
 from collections import defaultdict
 from subprocess import check_output
-from urllib import urlretrieve
 
 import requests
 from fuzzywuzzy import fuzz
 from purl import URL
+from clldutils.dsv import reader
 
-from clld.lib.imeji import file_urls
 from clld.lib.bibtex import Record, Database, unescape
 
 
@@ -279,3 +278,123 @@ FIELD_MAP = {
     domain,
     specimen
 """
+
+GPS_LANGS = {
+    "Ampari": "ampa1238",
+    "Bangime": "bang1363",
+    "Bankan Tey": "bank1259",
+    "Ben Tey": "bent1238",
+    "Bomu": "bomu1247",
+    "Bozo": "bozo1252",
+    "Bunoge": "buno1241",
+    "Dogul Dom": "dogu1235",
+    "Donno So": "donn1238",
+    "Fulfulde": "west2454",
+    "Humburi Senni": "humb1243",
+    "Jamsay": "jams1239",
+    "Koyraboro Senni": "koyr1242",
+    "Manding": "mand1435",
+    "Mombo": "momb1254",
+    "Moore (Mossi)": "moss1236",
+    "Najamba-Kindige": "bond1248",
+    "Nanga": "nang1261",
+    "Penange": "pena1270",
+    "Tamashek": "tama1365",
+    "Tebul Ure": "tebu1239",
+    "Tengou Kan": "",
+    "Tiranige": "tira1258",
+    "Togo Kan": "togo1254",
+    "Tommo So": "",
+    "Tommo So? Tengou Kan?": None,
+    "Tomo Kan": "tomo1243",
+    "Tondi Songway Kiini": "tond1249",
+    "Toro So": "toro1252",
+    "Toro Tegu": "toro1253",
+    "Western Songhay": "nort2822",
+    "Yanda Dom": "yand1257",
+    #peul: fula1264
+}
+
+
+def gps(args):
+    """
+    Multilingual,
+    lg family, -> Dogon, Atlantic, Mande, Berber, ...
+    family code ,
+    Language (group), -> Names of Dogon languages
+    alternate lg (group), -> comma separated list of language names
+    language code, -> ISO 639-3
+    Language (based on native name),
+    dialect code,
+    ISO 3 Letter country code,
+    OfficialVillageName, -> name!
+    MajorCity,
+    PopulationNumber,
+    village (RB),
+    village (DNAFLA),
+    village (SIL),
+    village (map), -> alternative name
+    Transcribed Village Name, -> keep
+    N Lat,
+    W Lon,
+    NFr,
+    WFr,
+    Nmn60,
+    Wmn60,
+    NMinFr,
+    WMinFr,
+    Ndg,
+    Wdg,
+    N Lat_2, -> 12 12.123
+    W Lon_2, -> 12 12.123
+    N SIL,
+    W SIL,
+    N Lat source,
+    WLon source,
+    N Lat map,
+    WLon map,
+    N Lat us,
+    W Long us,
+    sourceOfCoordinates, -> keep
+    name of map, -> keep
+    lg comment, -> keep
+    industries, -> keep
+    weekly market, -> keep
+    surnames, -> keep
+    social info, -> keep
+    Image,
+    ImageDescription,
+    Audio,
+    AudioTranscription,
+    Video,
+    VideoTranscription
+    """
+    def parse_deg(s):
+        if s:
+            try:
+                deg, min = s.split()
+                return float(deg) + (float(min) / 60)
+            except:
+                comps = s.split('.')
+                if len(comps) == 3:
+                    deg, min = comps[0], '.'.join(comps[1:])
+                    return float(deg) + (float(min) / 60)
+                else:
+                    assert s == 'see Ogourou'
+                return
+
+    for d in reader(
+            args.data_file('repos', 'GPS_Dogon_spreadsheet_for_LLMAP.csv'), dicts=True):
+        d['glottocode'] = GPS_LANGS.get(d['Language (group)'])
+        if d['OfficialVillageName'] == 'Daidourou':
+            lat, lon = None, None
+        else:
+            lat, lon = parse_deg(d['N Lat_2']), parse_deg(d['W Lon_2'])
+        if lat is not None:
+            if not (12 < lat < 20):
+                print('lat', lat, d['OfficialVillageName'], d['N Lat_2'])
+        if lon is not None:
+            if not (0 < lon < 15):
+                print('lon', lon, d['OfficialVillageName'], d['W Lon_2'])
+        if lat and lon:
+            yield lat, -lon, d

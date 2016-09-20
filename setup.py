@@ -1,15 +1,16 @@
 from setuptools import setup, find_packages
 
 requires = [
-    'clld>=2.0.0',
-    'clldmpg>=1.0.0',
+    'clld>=3.1.1',
+    'clldmpg>=2.0.0',
     'psycopg2',
     'fuzzywuzzy',
+    'pyglottolog',
 ]
 
 tests_require = [
     'WebTest >= 1.3.1', # py3 compat
-    'mock==1.0',
+    'mock',
 ]
 
 setup(name='dogonlanguages',
