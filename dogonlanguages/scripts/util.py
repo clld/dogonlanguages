@@ -7,12 +7,17 @@ import shutil
 from collections import defaultdict
 from subprocess import check_output
 
+import attr
+import dateutil
 import requests
 from fuzzywuzzy import fuzz
 from purl import URL
 from clldutils.dsv import reader
+from clldutils.path import walk, Path
 
 from clld.lib.bibtex import Record, Database, unescape
+
+from dogonlanguages.scripts.data import GPS_LANGS
 
 
 def get_contributors(rec, data):
@@ -159,44 +164,72 @@ def get_bib(args):
         yield rec
 
 
-CONTRIBUTORS = {
-    "Minkailou Djiguiba": ("""is a native speaker of Jamsay (Dogon), and also speaks French, Fulfulde, and Bambara. After graduating from secretariat school at IFN in Sevare, he joined the project initially as Jamsay informant and assistant for Heath. He has stayed on as a full-time employee to manage our bases and to organize our travels and our visits to Dogon villages. He has filmed some of our feature videos and has done much work in the geography and flora-fauna components of the project. He drives the project vehicle (which he owns).""",
+@attr.s
+class Contributor(object):
+    name = attr.ib()
+    description = attr.ib()
+    email = attr.ib()
+    url = attr.ib()
+    abbr = attr.ib()
+
+CONTRIBUTORS = [
+    Contributor(
+        "Minkailou Djiguiba",
+        """is a native speaker of Jamsay (Dogon), and also speaks French, Fulfulde, and Bambara. After graduating from secretariat school at IFN in Sevare, he joined the project initially as Jamsay informant and assistant for Heath. He has stayed on as a full-time employee to manage our bases and to organize our travels and our visits to Dogon villages. He has filmed some of our feature videos and has done much work in the geography and flora-fauna components of the project. He drives the project vehicle (which he owns).""",
         "minkailoudjiguiba (at) yahoo.fr",
-        None),
-
-    "Vadim Dyachkov": ("""is a postgraduate student of the Moscow State University, and works at the Russian Academy of Science. He studies linguistics focusing on morphology, syntax and their interactions, especially on deadjectival verb typology and the theory of subjecthood. He joined the project in 2011. He has made four trips to Mali (and Burkina) beginning in 2011. He has focused on the Tomo Kan dialect spoken in Segue, and is working on a grammar and a dictionary.""",
+        None,
+        'MD'),
+    Contributor(
+        "Vadim Dyachkov",
+        """is a postgraduate student of the Moscow State University, and works at the Russian Academy of Science. He studies linguistics focusing on morphology, syntax and their interactions, especially on deadjectival verb typology and the theory of subjecthood. He joined the project in 2011. He has made four trips to Mali (and Burkina) beginning in 2011. He has focused on the Tomo Kan dialect spoken in Segue, and is working on a grammar and a dictionary.""",
         "hyppocentaurus (at) mail.ru",
-        None),
-
-    "Stefan Elders": ("""a Dutch post-doc trained at University of Leiden (Netherlands) and active as a research associate at the University of Bayreuth (Germany), joined the project in September 2006 to work on Bangime in the village of Bounou. His tragic death in Mali due to a sudden illness in February 2007 was a devastating blow to West African linguistics. In his short career he did extensive fieldwork in Cameroon and Burkina Faso, made important contributions to Gur and West Atlantic linguistics, and was in the process of becoming one of the major overall authorities on West African linguistics. This website presents the materials we were able to salvage from his work on Bangime: a handout he prepared for a workshop on Dogon languages in Bamako December 2006, and scans from his notebooks (courtesy of the Elders family). The original notebooks are archived at the University of Leiden library. We are also in possession of two partially recorded cassettes, some flora specimens, and a number of ethnographic photographs that we will process and disseminate. Click on the Bangime tab for more on Elders' work on this language.""",
-        None, None),
-
-    "Abbie Hantgan": ("""then a graduate student in Linguistics at Indiana University, was recruited following Elders' death to carry on the study of Bangime. She had previously been a Peace Corps volunteer in Mali for several years, based initially in the village of Koira Beiri (Kindige language area) and then in Mopti-Sevare. She is fluent in Fulfulde, which is invaluable as a lingua franca in the Bangime villages, and has recently learned to speak Bambara/Jula. Abbie did initial fieldwork on Bangime in Bounou June-August 2008, and has returned to the field several times since. Her 2013 PhD dissertation was a description and analysis of aspects of the phonology, morphology, and morphosyntax of Bangime. She has also produced work on Dogon languages' (Kindige, Ibi So) [ATR] systems. She is currently a postdoctoral fellow at SOAS in London, on the Leverhulme funded Crossroads Project focusing on multilingualism among Senegalese languages.""",
+        None,
+        'VD'),
+    Contributor(
+        "Stefan Elders",
+        """a Dutch post-doc trained at University of Leiden (Netherlands) and active as a research associate at the University of Bayreuth (Germany), joined the project in September 2006 to work on Bangime in the village of Bounou. His tragic death in Mali due to a sudden illness in February 2007 was a devastating blow to West African linguistics. In his short career he did extensive fieldwork in Cameroon and Burkina Faso, made important contributions to Gur and West Atlantic linguistics, and was in the process of becoming one of the major overall authorities on West African linguistics. This website presents the materials we were able to salvage from his work on Bangime: a handout he prepared for a workshop on Dogon languages in Bamako December 2006, and scans from his notebooks (courtesy of the Elders family). The original notebooks are archived at the University of Leiden library. We are also in possession of two partially recorded cassettes, some flora specimens, and a number of ethnographic photographs that we will process and disseminate. Click on the Bangime tab for more on Elders' work on this language.""",
+        None,
+        None,
+        'SE'),
+    Contributor(
+        "Abbie Hantgan",
+        """then a graduate student in Linguistics at Indiana University, was recruited following Elders' death to carry on the study of Bangime. She had previously been a Peace Corps volunteer in Mali for several years, based initially in the village of Koira Beiri (Kindige language area) and then in Mopti-Sevare. She is fluent in Fulfulde, which is invaluable as a lingua franca in the Bangime villages, and has recently learned to speak Bambara/Jula. Abbie did initial fieldwork on Bangime in Bounou June-August 2008, and has returned to the field several times since. Her 2013 PhD dissertation was a description and analysis of aspects of the phonology, morphology, and morphosyntax of Bangime. She has also produced work on Dogon languages' (Kindige, Ibi So) [ATR] systems. She is currently a postdoctoral fellow at SOAS in London, on the Leverhulme funded Crossroads Project focusing on multilingualism among Senegalese languages.""",
         "ahantgan (at) umail.iu.edu",
-        "https://soascrossroads.org/team/post-doc-research-fellows/abbie-hantgan/"),
-    #(includes a grammar and lexicon of Tiefo, a severely endangered Gur language of SW Burkina Faso)
-    #Abbie's article in the Returned Peace Corps Volunteer Newsletter [pdf]
-
-    "Jeffrey Heath": ("""Prof. of Linguistics, University of Michigan (Ann Arbor) is a veteran of more than 14 years of on-location fieldwork. He began with Australian Aboriginal languages of eastern Arnhem Land (1970's), then did various topical projects on Jewish and Muslim dialects of Maghrebi Arabic (1980's). Since 1989 he has made annual trips to Mali where he has worked in succession on Hassaniya Arabic, riverine Songhay languages (Koyra Chiini, Koyraboro Senni), montane Songhay languages (Tondi Songway Kiini, Humburi Senni), and Tamashek (Berber family). Since 2005 he has focused on Dogon languages: Jamsay, Ben Tey, Bankan Tey, Bunoge, Najamba, Nanga, Penange, Tebul Ure, Tiranige, Yanda Dom, Donno So, and Dogul Dom. During his 2011-12 fieldwork stint he has also been shooting and producing low-budget videos of cultural events and everyday practical activities, some of which can be viewed on the project website. He has also been mapping Dogon villages in collaboration with the LLMAP project at Eastern Michigan University, and has continued to work on local flora-fauna and native terms thereof. He is the author of A Grammar of Jamsay (Mouton, 2008), but his more recent Dogon grammars are currently disseminated on the project website or published in the open access digital library Language Description Heritage and permanantly archived at Deep Blue at the University of Michigan. In Burkina, Jeff is working on Tiefo (Gur) in collaboration with others, and on Jalkunan (Mande).""",
+        "https://soascrossroads.org/team/post-doc-research-fellows/abbie-hantgan/",
+        'AH'),
+        #(includes a grammar and lexicon of Tiefo, a severely endangered Gur language of SW Burkina Faso)
+        #Abbie's article in the Returned Peace Corps Volunteer Newsletter [pdf]
+    Contributor(
+        "Jeffrey Heath",
+        """Prof. of Linguistics, University of Michigan (Ann Arbor) is a veteran of more than 14 years of on-location fieldwork. He began with Australian Aboriginal languages of eastern Arnhem Land (1970's), then did various topical projects on Jewish and Muslim dialects of Maghrebi Arabic (1980's). Since 1989 he has made annual trips to Mali where he has worked in succession on Hassaniya Arabic, riverine Songhay languages (Koyra Chiini, Koyraboro Senni), montane Songhay languages (Tondi Songway Kiini, Humburi Senni), and Tamashek (Berber family). Since 2005 he has focused on Dogon languages: Jamsay, Ben Tey, Bankan Tey, Bunoge, Najamba, Nanga, Penange, Tebul Ure, Tiranige, Yanda Dom, Donno So, and Dogul Dom. During his 2011-12 fieldwork stint he has also been shooting and producing low-budget videos of cultural events and everyday practical activities, some of which can be viewed on the project website. He has also been mapping Dogon villages in collaboration with the LLMAP project at Eastern Michigan University, and has continued to work on local flora-fauna and native terms thereof. He is the author of A Grammar of Jamsay (Mouton, 2008), but his more recent Dogon grammars are currently disseminated on the project website or published in the open access digital library Language Description Heritage and permanantly archived at Deep Blue at the University of Michigan. In Burkina, Jeff is working on Tiefo (Gur) in collaboration with others, and on Jalkunan (Mande).""",
         "schweinehaxen (at) hotmail.com",
-        "http://www-personal.umich.edu/~jheath/"),
-
-    "Laura McPherson": ("""is an assistant professor in the Linguistics Program at Dartmouth College. Her main theoretical interests are in phonology, tonology, and the phonology-syntax interface. She earned her BA in Linguistics from Scripps College in 2008, working with Africanist Mary Paster on the verbal morphology of Luganda, and her PhD from UCLA in 2014 with the dissertation Replacive grammatical tone in the Dogon languages (co-chairs Bruce Hayes and Russell Schuh). She spent eleven months in Mali on her first field trip (2008-2009) working on Tommo So, first with the support of our project then with the support of a Fulbright Fellowship. She returned to Mali annually to continue work and published A Grammar of Tommo So in the Mouton Grammar Library in 2013. She has more recently shifted focus to Seeku, a Mande language of Burkina Faso and on languages in Melanesia.""",
+        "http://www-personal.umich.edu/~jheath/",
+        'JH'),
+    Contributor(
+        "Laura McPherson",
+        """is an assistant professor in the Linguistics Program at Dartmouth College. Her main theoretical interests are in phonology, tonology, and the phonology-syntax interface. She earned her BA in Linguistics from Scripps College in 2008, working with Africanist Mary Paster on the verbal morphology of Luganda, and her PhD from UCLA in 2014 with the dissertation Replacive grammatical tone in the Dogon languages (co-chairs Bruce Hayes and Russell Schuh). She spent eleven months in Mali on her first field trip (2008-2009) working on Tommo So, first with the support of our project then with the support of a Fulbright Fellowship. She returned to Mali annually to continue work and published A Grammar of Tommo So in the Mouton Grammar Library in 2013. She has more recently shifted focus to Seeku, a Mande language of Burkina Faso and on languages in Melanesia.""",
         "laura.emcpherson (at) gmail.com",
-"http://www.dartmouth.edu/~mcpherson/"),
-
-    "Steven Moran": ("""a veteran of the Eastern Michigan University Linguist List and E-MELD team, went on to get a 2012 Ph.D. in Computational Linguistics at the University of Washington with a dissertation title "Phonetics information base and lexicon." He previously did fieldwork in Ghana and published a grammatical sketch of Western Sisaala. He manages the Dogon project website, and has done fieldwork on Toro-So (Sangha So dialect) in 2009 and 2013. He was a postdoc researcher at the University of Munich (Germany) in the project "Quantitative language comparison" funded by the European Research Council from 2012-2014, and is currently a postdoc at the University of Zurich. """,
+        "http://www.dartmouth.edu/~mcpherson/",
+        'LM'),
+    Contributor(
+        "Steven Moran",
+        """a veteran of the Eastern Michigan University Linguist List and E-MELD team, went on to get a 2012 Ph.D. in Computational Linguistics at the University of Washington with a dissertation title "Phonetics information base and lexicon." He previously did fieldwork in Ghana and published a grammatical sketch of Western Sisaala. He manages the Dogon project website, and has done fieldwork on Toro-So (Sangha So dialect) in 2009 and 2013. He was a postdoc researcher at the University of Munich (Germany) in the project "Quantitative language comparison" funded by the European Research Council from 2012-2014, and is currently a postdoc at the University of Zurich. """,
         "bambooforest (at) gmail.com",
-        "http://www.comparativelinguistics.uzh.ch/de/moran.html"),
-
-    "Kirill Prokhorov": ("""is a Russian Ph.D. who has been trained by West African specialists and field-oriented typologists in Moscow and St. Petersburg. Since 2008 he has focused on the Mombo (also known as Kolu-So) language with a base in the picturesque village of Songho just west of Bandiagara. In January 2009 he was a visiting scholar for one month at the Max Planck Institute for Evolutionary Anthropology (MPI-EVA) in Leipzig, which also provided him with a stipend to support his 2008 fieldwork. He has made return trips to Dogon country in 2009, 2010 and 2011. He has also studied Ampari, and did short pilot-studies of Bunoge and Penange. In 2010 was based at Humboldt University (Berlin) where he is working on the project "Predicate-centered focus types: A sample-based typological study in African languages", part of the larger project SFB 632 "Information Structure" funded by German Science Association (DFG).""",
+        "http://www.comparativelinguistics.uzh.ch/de/moran.html",
+        'SM'),
+    Contributor(
+        "Kirill Prokhorov",
+        """is a Russian Ph.D. who has been trained by West African specialists and field-oriented typologists in Moscow and St. Petersburg. Since 2008 he has focused on the Mombo (also known as Kolu-So) language with a base in the picturesque village of Songho just west of Bandiagara. In January 2009 he was a visiting scholar for one month at the Max Planck Institute for Evolutionary Anthropology (MPI-EVA) in Leipzig, which also provided him with a stipend to support his 2008 fieldwork. He has made return trips to Dogon country in 2009, 2010 and 2011. He has also studied Ampari, and did short pilot-studies of Bunoge and Penange. In 2010 was based at Humboldt University (Berlin) where he is working on the project "Predicate-centered focus types: A sample-based typological study in African languages", part of the larger project SFB 632 "Information Structure" funded by German Science Association (DFG).""",
         "bolshoypro (at) gmail.com",
-        None),
-
-    "Vu Truong": ("""graduated from Brandeis University with a B.A. in linguistics in 2011. In 2010, he designed and implemented a sociolinguistic survey in Sokone, Senegal on attitudes towards language shift to Wolof. In 2011, he taught English in Kagoshima, Japan as part of the JET Program. He joined the project in August 2012. He was at our base in Bobo Dioulasso from mid-2012 to mid-2014, working on the Jalkunan language (Mande family, about 500 speakers). He is now a student in the Linguistics PhD program at the University of Chicago.""",
+        None,
+        'KP'),
+    Contributor(
+        "Vu Truong",
+        """graduated from Brandeis University with a B.A. in linguistics in 2011. In 2010, he designed and implemented a sociolinguistic survey in Sokone, Senegal on attitudes towards language shift to Wolof. In 2011, he taught English in Kagoshima, Japan as part of the JET Program. He joined the project in August 2012. He was at our base in Bobo Dioulasso from mid-2012 to mid-2014, working on the Jalkunan language (Mande family, about 500 speakers). He is now a student in the Linguistics PhD program at the University of Chicago.""",
         "finath (at) gmail.com",
-        None),
-    }
+        None,
+        'VT'),
+]
 
 
 class Entry(object):
@@ -279,41 +312,78 @@ FIELD_MAP = {
     specimen
 """
 
-GPS_LANGS = {
-    "Ampari": "ampa1238",
-    "Bangime": "bang1363",
-    "Bankan Tey": "bank1259",
-    "Ben Tey": "bent1238",
-    "Bomu": "bomu1247",
-    "Bozo": "bozo1252",
-    "Bunoge": "buno1241",
-    "Dogul Dom": "dogu1235",
-    "Donno So": "donn1238",
-    "Fulfulde": "west2454",
-    "Humburi Senni": "humb1243",
-    "Jamsay": "jams1239",
-    "Koyraboro Senni": "koyr1242",
-    "Manding": "mand1435",
-    "Mombo": "momb1254",
-    "Moore (Mossi)": "moss1236",
-    "Najamba-Kindige": "bond1248",
-    "Nanga": "nang1261",
-    "Penange": "pena1270",
-    "Tamashek": "tama1365",
-    "Tebul Ure": "tebu1239",
-    "Tengou Kan": "",
-    "Tiranige": "tira1258",
-    "Togo Kan": "togo1254",
-    "Tommo So": "",
-    "Tommo So? Tengou Kan?": None,
-    "Tomo Kan": "tomo1243",
-    "Tondi Songway Kiini": "tond1249",
-    "Toro So": "toro1252",
-    "Toro Tegu": "toro1253",
-    "Western Songhay": "nort2822",
-    "Yanda Dom": "yand1257",
-    #peul: fula1264
-}
+
+@attr.s
+class VillageImage(object):
+    path = attr.ib()
+    description = attr.ib()
+    date = attr.ib()
+    creators = attr.ib()
+    coords = attr.ib()
+
+
+def village_images(args):
+    for f in walk(Path('../images/Mali villages with coordinates for website'), mode='files'):
+        if (not f.stem.startswith('.')) and f.suffix.lower() == '.jpg':
+            _, coords, desc, date_, creators = image_md(f.stem)
+            yield VillageImage(f, desc, date_, creators, coords)
+
+
+def parse_deg(s):
+    if s:
+        try:
+            deg, min = s.split()
+            return float(deg) + (float(min) / 60)
+        except:
+            comps = s.split('.')
+            if len(comps) == 3:
+                deg, min = comps[0], '.'.join(comps[1:])
+                return float(deg) + (float(min) / 60)
+            else:
+                assert s == 'see Ogourou'
+            return
+
+
+ID_PATTERN = re.compile('_([0-9]{5})_')
+COORDS_PATTERN = re.compile('(N[0-9]{2}_[0-9]{2}\+?_W[0-9]{2}_[0-9]{2})')
+DATE_PATTERN = re.compile('((?:_?[0-9]{2})?_[0-9]{4})(?:_|$)')
+INITIALS_PATTERN = re.compile('((?:_[A-Z]{2})+)$')
+
+
+def image_md(name):
+    """
+    Dogon_Nanga_Anda_70371_N14_49_W03_01_village_from_above_03_2011_SM_JH.JPG
+    """
+    def totext(s):
+        if s:
+            return s.replace('_', ' ').strip()
+
+    def todate(s):
+        if s:
+            return dateutil.parser.parse(totext(s)).date()
+
+    def tolatlon(s):
+        return map(parse_deg, s[1:].replace('+', '').replace('_', ' ').split('W'))
+
+    name = name.replace('.', '_').replace(' ', '_')
+    coords, date_, lang_and_name = None, None, None
+    if ID_PATTERN.search(name):
+        lang_and_name, _, rem = ID_PATTERN.split(name)
+    else:
+        rem = name
+    if COORDS_PATTERN.search(rem):
+        _, coords, rem = COORDS_PATTERN.split(rem)
+        coords = tolatlon(coords)
+        if not lang_and_name:
+            lang_and_name = _
+    if DATE_PATTERN.search(rem):
+        desc, date_, rem = DATE_PATTERN.split(rem, maxsplit=1)
+    else:
+        if INITIALS_PATTERN.search(rem):
+            desc, rem, _ = INITIALS_PATTERN.split(rem)
+        else:
+            desc, rem = rem, ''
+    return totext(lang_and_name), coords, totext(desc), todate(date_), (totext(rem) or '').split()
 
 
 def gps(args):
@@ -369,20 +439,6 @@ def gps(args):
     Video,
     VideoTranscription
     """
-    def parse_deg(s):
-        if s:
-            try:
-                deg, min = s.split()
-                return float(deg) + (float(min) / 60)
-            except:
-                comps = s.split('.')
-                if len(comps) == 3:
-                    deg, min = comps[0], '.'.join(comps[1:])
-                    return float(deg) + (float(min) / 60)
-                else:
-                    assert s == 'see Ogourou'
-                return
-
     for d in reader(
             args.data_file('repos', 'GPS_Dogon_spreadsheet_for_LLMAP.csv'), dicts=True):
         d['glottocode'] = GPS_LANGS.get(d['Language (group)'])
