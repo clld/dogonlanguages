@@ -3,8 +3,9 @@ from sqlalchemy.orm import joinedload_all, joinedload
 from clld.web.datatables.value import Values
 from clld.web.datatables.parameter import Parameters
 from clld.web.datatables.contributor import Contributors, NameCol, UrlCol
+from clld.web.datatables.source import Sources, TypeCol
 from clld.web.datatables.language import Languages
-from clld.web.datatables.base import LinkCol, Col, DataTable, LinkToMapCol
+from clld.web.datatables.base import LinkCol, Col, DataTable, LinkToMapCol, DetailsRowLinkCol
 from clld.web.util.htmllib import HTML
 from clld.web.util.helpers import icon, link
 from clld.db.meta import DBSession
@@ -180,9 +181,33 @@ class Villages(DataTable):
         ]
 
 
+class DocumentCol(Col):
+    __kw__ = dict(bSearchable=False, bSortable=False)
+
+    def format(self, item):
+        if item._files:
+            return HTML.span('%s' % len(item._files), icon('file', inverted=True), class_='badge')
+        return ''
+
+
+class Documents(Sources):
+    def col_defs(self):
+        return [
+            DetailsRowLinkCol(self, 'd'),
+            LinkCol(self, 'name'),
+            Col(self, 'description', sTitle='Title'),
+            Col(self, 'year'),
+            Col(self, 'author'),
+            Col(self, 'DLP', model_col=models.Document.project_doc),
+            DocumentCol(self, '#'),
+            TypeCol(self, 'bibtex_type'),
+        ]
+
+
 def includeme(config):
     config.register_datatable('contributors', ProjectMembers)
     config.register_datatable('languages', DogonLanguages)
     config.register_datatable('parameters', Concepts)
     config.register_datatable('values', Words)
     config.register_datatable('villages', Villages)
+    config.register_datatable('sources', Documents)

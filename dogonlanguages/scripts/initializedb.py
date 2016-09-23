@@ -83,32 +83,27 @@ def main(args):
         DBSession.add(common.Editor(
             dataset=dataset, ord=i + 1, contributor=data['Member'][id_]))
 
-    url_resolver = util.UrlResolver(args)
     contrib = data.add(common.Contribution, 'd', id='d', name='Dogon Languages')
-    project_docs = set()
-    for rec in util.get_bib(args):
+    for doc in util.get_bib(args):
         obj = data.add(
             models.Document,
-            rec.id,
-            _obj=bibtex2source(rec, cls=models.Document))
-        obj.project_doc = rec.get('keywords') == 'DLP'
+            doc.rec.id,
+            _obj=bibtex2source(doc.rec, cls=models.Document))
+        obj.project_doc = (doc.rec.get('keywords') == 'DLP') or bool(doc.files)
         if obj.project_doc:
-            for i, cid in enumerate(util.get_contributors(rec, data)):
+            for i, cid in enumerate(util.get_contributors(doc.rec, data)):
                 models.DocumentContributor(
                     document=obj, contributor=data['Member'][cid], ord=i)
-        if obj.url:
-            url = URL(obj.url)
-            if url.host() == 'dogonlanguages.org':
-                project_docs.add(url.path_segment(-1))
-                res = url_resolver(rec['url'])
-                if isinstance(res, dict):
-                    obj.url = res['url']
-                else:
-                    obj.url = res
+        for i, (path, cdstar) in enumerate(doc.files):
+            common.Source_files(
+                id='%s-%s' % (obj.id, i + 1),
+                name=path,
+                object=obj,
+                mime_type=guess_type(path)[0],
+                jsondata=cdstar,
+            )
 
     print('got bib')
-    #print(len(url_resolver.edmond_urls))
-    #return
 
     for name, (gc, desc) in LANGUAGES.items():
         gl_lang = languoids[gc]

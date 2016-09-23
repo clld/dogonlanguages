@@ -16,13 +16,7 @@ ${ctx.coins(request)|n}
     </ul>
     <div class="tab-content">
         <div id="tab1" class="tab-pane active">
-            % if ctx.project_doc and ctx.url:
-                <p>
-                <a href="${ctx.url}" title="View full text" id="${h.format_gbs_identifier(ctx)}">${bibrec.text()|n}</a>
-                </p>
-            % else:
-                <p id="${h.format_gbs_identifier(ctx)}">${bibrec.text()|n}</p>
-            % endif
+            <p id="${h.format_gbs_identifier(ctx)}">${bibrec.text()|n}</p>
 
             % if ctx.datadict().get('Additional_information'):
             <p>
@@ -46,12 +40,21 @@ ${ctx.coins(request)|n}
 
 <%def name="sidebar()">
 % if ctx.project_doc:
-    <%util:well title="Project members">
-        <ul class="unstyled">
-            % for c in ctx.contributors:
-                <li>${h.link(request, c)}</li>
-            % endfor
-        </ul>
+    <%util:well title="DLP Document">
+        % if ctx.contributors:
+            <ul class="unstyled">
+                % for c in ctx.contributors:
+                    <li>${h.link(request, c)}</li>
+                % endfor
+            </ul>
+        % endif
+        % if ctx._files:
+            <ul class="unstyled">
+                % for c in ctx._files:
+                    <li><a href="${u.cdstar_url(c)}"><span class="badge">${c.mime_type} ${h.icon('file', inverted=True)}</span></a></li>
+                % endfor
+            </ul>
+        % endif
     </%util:well>
 % endif
 </%def>

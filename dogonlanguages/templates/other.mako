@@ -1,6 +1,6 @@
 <%inherit file="${context.get('request').registry.settings.get('clld.app_template', 'app.mako')}"/>
 <%namespace name="util" file="util.mako"/>
-<%! active_menu_item = "bangime" %>
+<%! active_menu_item = "other" %>
 <%block name="title">Other Languages</%block>
 
 <h2>Other Languages</h2>

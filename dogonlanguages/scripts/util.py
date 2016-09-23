@@ -5,13 +5,12 @@ from hashlib import md5
 from io import open
 import shutil
 from collections import defaultdict
-from subprocess import check_output
 
+from purl import URL
 import attr
 import dateutil
 import requests
 from fuzzywuzzy import fuzz
-from purl import URL
 from clldutils.dsv import reader
 from clldutils.path import walk, Path
 from clldutils.jsonlib import load
@@ -23,37 +22,9 @@ from dogonlanguages.scripts.data import GPS_LANGS
 
 def get_contributors(rec, data):
     for author in re.split('\s+and\s+', unescape(rec['author'])):
-        for cid, obj in data['Contributor'].items():
+        for cid, obj in data['Member'].items():
             if fuzz.token_sort_ratio(author, obj.name) >= 92:
                 yield cid
-
-
-class UrlResolver(object):
-    def __init__(self, args):
-        self.args = args
-        self.checksums = {}
-        if not args.data_file('docs').exists():
-            self.edmond_urls = {}
-        else:
-            for fname in args.data_file('docs').iterdir():
-                if fname.is_file():
-                    self.checksums[fname.name] = check_output(
-                        'md5sum "%s"' % fname.as_posix().decode('utf8'), shell=True).split()[0]
-            for fname in args.data_file('docs', 'not_on_edmond').iterdir():
-                if fname.is_file():
-                    self.checksums[fname.name] = check_output(
-                        'md5sum "%s"' % fname.as_posix().decode('utf8'), shell=True).split()[0]
-            self.edmond_urls = {d['md5']: d for d in file_urls(args.data_file('Edmond.xml').as_posix())}
-
-    def __call__(self, url_):
-        url = URL(url_)
-        if url.host() == 'dogonlanguages.org':
-            basename = url.path_segment(-1)
-            if basename in self.checksums:
-                checksum = self.checksums[basename]
-                if checksum in self.edmond_urls:
-                    return self.edmond_urls[checksum]
-        return url_
 
 
 def update_species_data(species, d):
@@ -118,7 +89,7 @@ def parse_form(form):
 def get_thumbnail(args, filename):
     path = args.data_file('repos', 'thumbnails', filename.encode('utf8'))
     if not path.exists():
-        print path
+        #print path
         return
         r = requests.get('http://dogonlanguages.org/thumbnails/' + filename, stream=True)
         if r.status_code == 200:
@@ -156,13 +127,45 @@ def fixed(mess):
         return Record(genre, id_.hexdigest().decode('ascii'), **kw)
 
 
+@attr.s
+class Document(object):
+    rec = attr.ib()
+    files = attr.ib(default=attr.Factory(list))
+
+
 def get_bib(args):
+    uploaded = load(args.data_file('repos', 'cdstar.json'))
+    url_to_cdstar = {}
+    for type_ in ['texts', 'docs']:
+        for hash_, paths in load(args.data_file('repos', type_ + '.json')).items():
+            if hash_ in uploaded:
+                for path in paths:
+                    url_to_cdstar[re.sub('^images', '', path)] = uploaded[hash_]
+    for hash_, paths in load(args.data_file('repos', 'edmond.json')).items():
+        if hash_ in uploaded:
+            for path in paths:
+                url_to_cdstar[path.split('/')[-1]] = uploaded[hash_]
     db = Database.from_file(args.data_file('repos', 'Dogon.bib'), lowercase=True)
     keys = defaultdict(int)
     for rec in db:
         keys[rec.id] += 1
         rec.id = '%sx%s' % (rec.id, keys[rec.id])
-        yield rec
+        doc = Document(rec)
+        newurls = []
+        for url in rec.get('url', '').split(';'):
+            url = URL(url.strip())
+            if url.host() == 'dogonlanguages.org':
+                if url.path() in url_to_cdstar:
+                    doc.files.append((url.path(), url_to_cdstar[url.path()]))
+                elif url.path().split('/')[-1] in url_to_cdstar:
+                    print('found on edmond: %s' % url.path())
+                    doc.files.append((url.path(), url_to_cdstar[url.path().split('/')[-1]]))
+                else:
+                    newurls.append(url.as_string())
+            else:
+                newurls.append(url.as_string())
+        doc.rec['url'] = '; '.join(newurls)
+        yield doc
 
 
 @attr.s
@@ -332,7 +335,7 @@ def village_images(args):
         if hash_ in uploaded:
             fname = Path(paths[0])
             name, coords, desc, date_, creators = image_md(fname.stem)
-            yield VillageImage(fname.name, desc, date_, creators, coords, uploaded[hash_])
+            yield VillageImage(fname.name.decode('utf8'), desc, date_, creators, coords, uploaded[hash_])
 
 
 def parse_deg(s):

@@ -14,6 +14,11 @@ def eol_link(req, species):
     return ''
 
 
+def cdstar_url(obj, type_='original'):
+    return 'https://cdstar.shh.mpg.de/bitstreams/{0}/{1}'.format(
+        obj.jsondata['objid'], obj.jsondata.get(type_) or obj.jsondata['original'])
+
+
 def format_coordinates(obj):
     def degminsec(dec, hemispheres):
         _dec = abs(dec)
