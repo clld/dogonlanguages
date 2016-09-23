@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 import sys
 import re
-from collections import defaultdict
+from collections import defaultdict, Counter
+from mimetypes import guess_type
 
+import attr
 from purl import URL
 from clldutils.dsv import reader
 from clldutils.misc import slug, nfilter
@@ -20,6 +22,7 @@ except ImportError:
 import dogonlanguages
 from dogonlanguages import models
 from dogonlanguages.scripts import util
+from dogonlanguages.scripts.data import LANGUAGES, LEX_LANGS
 
 
 f = [
@@ -41,43 +44,10 @@ f = [
 ]
 
 
-LANGUAGES = [
-    ("Toro_Tegu", 'toro1253'),
-    ("Ben_Tey", 'bent1238'),
-    ("Bankan_Tey", 'bank1259'),
-    ("Nanga", 'nang1261'),
-    ("Jamsay_Alphabet", 'jams1239'),
-    ("Jamsay", 'jams1239'),
-    ("Perge_Tegu", 'perg1234'),
-    ("Gourou", 'guru1265'),
-    ("Jamsay_Mondoro", 'jams1239'),  # not different
-    ("Togo_Kan", 'togo1254'),
-    ("Yorno_So", 'yorn1234'),
-    # fauna has also:
-    #("Ibi-So (JH)", 'ibis1234'),
-    #("Donno-So", 'donn1238'),
-    ("Tomo_Kan", 'tomo1243'),
-    ("Tomo_Kan_Diangassagou", 'tomo1243'),  # not different
-    ("Tommo_So", 'tomm1242'),
-    #"Tommo So (Tongo Tongo, JH)",
-    #"Tommo-So (Tongo Tongo, LM)",
-    ("Dogul_Dom", 'dogu1235'),
-    ("Tebul_Ure", 'tebu1239'),
-    ("Yanda_Dom", 'yand1257'),
-    ("Najamba", 'bond1248'),
-    ("Tiranige", 'tira1258'),
-    ("Mombo", 'momb1254'),
-    ("Ampari", 'ampa1238'),
-    ("Bunoge", 'buno1241'),
-    ("Penange", 'pena1270'),
-    #("Bangime (Bounou, JH)", 'bang1363'),
-    #("Bangime (Bounou, AH)", 'bang1363'),
-    # HS Songhay,
-    # TSK Songhay,
-]
-
-
 def main(args):
+    village_images = {f.path.stem: f for f in util.village_images(args)}
+    print('got %s images' % len(village_images))
+
     if Glottolog:
         glottolog = Glottolog(
             Path(dogonlanguages.__file__).parent.parent.parent.parent.joinpath(
@@ -85,6 +55,8 @@ def main(args):
         languoids = {l.id: l for l in glottolog.languoids()}
     else:
         languoids = {}
+    print('got glottolog')
+
     files_dir = args.data_file('files')
     if not files_dir.exists():
         files_dir.mkdir(parents=True)
@@ -104,11 +76,9 @@ def main(args):
     )
     DBSession.add(dataset)
 
-    for name, props in util.CONTRIBUTORS.items():
-        id_ = slug(name.split()[-1])
-        data.add(
-            common.Contributor, id_,
-            id=id_, name=name, description=props[0], email=props[1], url=props[2])
+    for c in util.CONTRIBUTORS:
+        id_ = slug(c.name.split()[-1])
+        data.add(models.Member, id_, id=id_, **attr.asdict(c))
 
     for i, spec in enumerate([
         ('heath', "Jeffrey Heath"),
@@ -117,7 +87,7 @@ def main(args):
         DBSession.add(common.Editor(
             dataset=dataset,
             ord=i + 1,
-            contributor=data['Contributor'][spec[0]]))
+            contributor=data['Member'][spec[0]]))
 
     url_resolver = util.UrlResolver(args)
     contrib = data.add(common.Contribution, 'd', id='d', name='Dogon Languages')
@@ -131,7 +101,7 @@ def main(args):
         if obj.project_doc:
             for i, cid in enumerate(util.get_contributors(rec, data)):
                 models.DocumentContributor(
-                    document=obj, contributor=data['Contributor'][cid], ord=i)
+                    document=obj, contributor=data['Member'][cid], ord=i)
         if obj.url:
             url = URL(obj.url)
             if url.host() == 'dogonlanguages.org':
@@ -142,18 +112,25 @@ def main(args):
                 else:
                     obj.url = res
 
-    #print(len(project_docs))
+    print('got bib')
     #print(len(url_resolver.edmond_urls))
     #return
 
-    names = defaultdict(int)
-    cids = {}
-    for concept in reader(args.data_file('repos', 'fauna_Dogon_Unicode.csv'), delimiter=',', dicts=True):
-        add(languoids, cids, util.ff_to_standard(concept), data, names, contrib, ff=True)
+    for name, (gc, desc) in LANGUAGES.items():
+        gl_lang = languoids[gc]
+        lat, lon = gl_lang.latitude, gl_lang.longitude
+        data.add(
+            models.Languoid, gc,
+            id=gc,
+            name=name,
+            description=desc,
+            latitude=lat,
+            longitude=lon,
+            family=gl_lang.family.name if gl_lang and gl_lang.family else name,
+        )
 
-    for concept in reader(args.data_file('repos', 'dogon_lexicon.csv'), delimiter=',', escapechar='\\', namedtuples=True):
-        add(languoids, cids, concept, data, names, contrib)
-
+    print(len(village_images))
+    contrib_by_initial = {c.abbr: c for c in data['Member'].values()}
     for lat, lon, d in util.gps(args):
         key = slug(d['OfficialVillageName'])
         if key not in data['Village']:
@@ -165,16 +142,60 @@ def main(args):
                         models.Languoid, gl_lang.id, id=gl_lang.id, name=gl_lang.name, in_project=False, family=gl_lang.family.name if gl_lang.family else gl_lang.name)
             else:
                 lang = None
-            data.add(
+            village = data.add(
                 models.Village, key,
                 id=key,
                 name=d['OfficialVillageName'],
                 description=d['social info'],
+                surnames=d['surnames'],
+                major_city=d['MajorCity'] == 'Y',
+                transcribed_name=d['Transcribed Village Name'],
+                source_of_coordinates=d['sourceOfCoordinates'],
                 latitude=lat,
                 longitude=lon,
                 languoid=lang,
                 jsondata=d,
             )
+            normname = d['OfficialVillageName'].replace('-', '').split('(')[0].strip()
+            k = 0
+            for n in village_images.keys()[:]:
+                if '_%s_' % normname in n:
+                    img = village_images[n]
+                    mimetype = guess_type(img.path.name)[0]
+                    if mimetype:
+                        k += 1
+                        f = models.Village_files(
+                            id='%s-%s' % (key, k),
+                            name=n,
+                            description=img.description,
+                            date_created=img.date,
+                            latitude=img.coords[0] if img.coords else None,
+                            longitude=-img.coords[1] if img.coords else None,
+                            object=village,
+                            mime_type=mimetype,
+                        )
+                        with img.path.open('rb') as fp:
+                            f.create(args.data_file('files'), fp.read())
+                        for initial in img.creators:
+                            if initial in contrib_by_initial:
+                                models.Fotographer(
+                                    foto=f,
+                                    contributor=contrib_by_initial[initial])
+
+                    del village_images[n]
+                    #else:
+                    #    print('no image', normname)
+
+    print(len(village_images))
+    #return
+
+    names = defaultdict(int)
+    cids = {}
+    for concept in reader(args.data_file('repos', 'fauna_Dogon_Unicode.csv'), delimiter=',', dicts=True):
+        add(languoids, cids, util.ff_to_standard(concept), data, names, contrib, ff=True)
+
+    for concept in reader(args.data_file('repos', 'dogon_lexicon.csv'), delimiter=',', escapechar='\\', namedtuples=True):
+        add(languoids, cids, concept, data, names, contrib)
 
     ref_pattern = re.compile('(?P<ref>[0-9]{5})')
     count = 0
@@ -268,16 +289,11 @@ def add(languoids, cids, concept, data, names, contrib, ff=False):
         print '***', cid, concept.ref, concept.English
         return
 
-    for l, gc in LANGUAGES:
-        gl_lang = languoids[gc]
-        lat, lon = gl_lang.latitude, gl_lang.longitude
+    for i, (l, gc) in enumerate(LEX_LANGS):
         lang = data['Languoid'].get(gc)
         if lang is None:
-            lang = data.add(
-                models.Languoid, gc,
-                id=gc, name=l.replace('_', ' '), latitude=lat, longitude=lon,
-                family=gl_lang.family.name if gl_lang else l,
-            )
+            print(l)
+            raise ValueError
 
         forms = (getattr(concept, l) or '').strip()
         if not forms:
@@ -285,13 +301,13 @@ def add(languoids, cids, concept, data, names, contrib, ff=False):
 
         # FIXME: distinguish varieties as contributions!?
         vs = common.ValueSet(
-            id='-'.join([slug(l), cid]),
+            id='-'.join([cid, str(i + 1)]),
             language=lang,
             contribution=contrib,
             parameter=c)
-        for i, form in enumerate(nfilter(util.split_words(forms))):
+        for j, form in enumerate(nfilter(util.split_words(forms))):
             v = models.Counterpart(
-                id='-'.join([cid, slug(l), str(i + 1)]),
+                id='-'.join([cid, str(i + 1), str(j + 1)]),
                 valueset=vs,
                 **util.parse_form(form))
 

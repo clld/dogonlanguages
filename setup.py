@@ -6,6 +6,7 @@ requires = [
     'psycopg2',
     'fuzzywuzzy',
     'pyglottolog',
+    'attrs',
 ]
 
 tests_require = [

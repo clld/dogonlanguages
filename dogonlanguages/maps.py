@@ -1,7 +1,8 @@
 from collections import defaultdict
 
 from clld.interfaces import IMapMarker
-from clld.web.maps import ParameterMap, Map, Legend
+from clld.web.maps import ParameterMap, Map, Legend, Layer
+from clld.web.adapters.geojson import GeoJson, get_lonlat
 from clld.web.util.htmllib import HTML
 from clld.web.icon import MapMarker as BaseMapMarker
 from clldutils.misc import dict_merged
@@ -12,9 +13,45 @@ from dogonlanguages.interfaces import IVillage
 OPTIONS = {'show_labels': True, 'max_zoom': 12, 'base_layer': "Esri.WorldImagery"}
 
 
+class VillageGeoJson(GeoJson):
+    def feature_iterator(self, ctx, req):
+        return [ctx]
+
+
+class VillageMap(Map):
+
+    def get_layers(self):
+        yield Layer(
+            self.ctx.id,
+            self.ctx.name,
+            VillageGeoJson(self.ctx).render(self.ctx, self.req, dump=False))
+
+    def get_default_options(self):
+        return {
+            'base_layer': "Esri.WorldImagery",
+            'center': list(reversed(get_lonlat(self.ctx) or [0, 0])),
+            'max_zoom': 15,
+            'no_popup': True,
+            'no_link': True,
+            'sidebar': True}
+
+
 class LanguagesMap(Map):
     def get_options(self):
         return dict_merged(Map.get_options(self), **OPTIONS)
+
+
+class DogonLanguageMap(Map):
+    def get_options(self):
+        res = dict_merged(Map.get_options(self), **OPTIONS)
+        res.update({
+            #'center': list(reversed(get_lonlat(self.ctx) or [0, 0])),
+            #'zoom': 3,
+            'max_zoom': 15,
+            'no_popup': True,
+            'no_link': True,
+            'sidebar': True})
+        return res
 
 
 class ConceptMap(ParameterMap):
@@ -92,6 +129,8 @@ class VillagesMap(Map):
 
 def includeme(config):
     config.registry.registerUtility(MapMarker(), IMapMarker)
+    config.register_map('language', DogonLanguageMap)
     config.register_map('languages', LanguagesMap)
     config.register_map('parameter', ConceptMap)
+    config.register_map('village', VillageMap)
     config.register_map('villages', VillagesMap)

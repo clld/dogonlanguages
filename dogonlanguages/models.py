@@ -1,5 +1,7 @@
 from __future__ import print_function, division, unicode_literals
+from math import floor
 
+from six import text_type
 from zope.interface import implementer
 from pyramid.decorator import reify
 from sqlalchemy import (
@@ -10,6 +12,7 @@ from sqlalchemy import (
     ForeignKey,
     Float,
     CheckConstraint,
+    Date,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -18,6 +21,7 @@ from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
 from clld.db.models.common import (
     IdNameDescriptionMixin, Value, Unit, Parameter, Source, Contributor, Language,
+    FilesMixin, HasFilesMixin,
 )
 
 from dogonlanguages.interfaces import IVillage
@@ -40,6 +44,12 @@ class Languoid(CustomModelMixin, Language):
     pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
     in_project = Column(Boolean, default=True)
     family = Column(Unicode)
+
+
+@implementer(interfaces.IContributor)
+class Member(CustomModelMixin, Contributor):
+    pk = Column(Integer, ForeignKey('contributor.pk'), primary_key=True)
+    abbr = Column(Unicode)
 
 
 @implementer(interfaces.IParameter)
@@ -108,8 +118,7 @@ class DocumentContributor(Base):
     contributor = relationship(Contributor, lazy=False, backref='document_assocs')
 
 
-@implementer(IVillage)
-class Village(Base, IdNameDescriptionMixin):
+class LatLonMixin(object):
     latitude = Column(
         Float(),
         CheckConstraint('-90 <= latitude and latitude <= 90'),
@@ -118,5 +127,25 @@ class Village(Base, IdNameDescriptionMixin):
         Float(),
         CheckConstraint('-180 <= longitude and longitude <= 180 '),
         doc='geographical longitude in WGS84')
+
+
+class Village_files(Base, FilesMixin, LatLonMixin):
+    date_created = Column(Date)
+
+
+@implementer(IVillage)
+class Village(Base, IdNameDescriptionMixin, HasFilesMixin, LatLonMixin):
     languoid_pk = Column(Integer, ForeignKey('languoid.pk'))
     languoid = relationship(Languoid, backref='villages')
+    surnames = Column(Unicode)
+    major_city = Column(Boolean)
+    transcribed_name = Column(Unicode)
+    source_of_coordinates = Column(Unicode)
+
+
+class Fotographer(Base):
+    foto_pk = Column(Integer, ForeignKey('village_files.pk'))
+    contributor_pk = Column(Integer, ForeignKey('contributor.pk'))
+
+    foto = relationship(Village_files, backref='contributor_assocs')
+    contributor = relationship(Contributor, lazy=False, backref='foto_assocs')

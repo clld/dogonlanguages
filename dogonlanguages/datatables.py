@@ -1,12 +1,13 @@
-from sqlalchemy.orm import joinedload_all
+from sqlalchemy.orm import joinedload_all, joinedload
 
 from clld.web.datatables.value import Values
 from clld.web.datatables.parameter import Parameters
 from clld.web.datatables.contributor import Contributors, NameCol, UrlCol
 from clld.web.datatables.language import Languages
-from clld.web.datatables.base import LinkCol, Col, IdCol, DataTable
+from clld.web.datatables.base import LinkCol, Col, DataTable, LinkToMapCol
 from clld.web.util.htmllib import HTML
-from clld.web.util.helpers import icon
+from clld.web.util.helpers import icon, link
+from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.db.util import get_distinct_values
 
@@ -128,8 +129,55 @@ class Words(Values):
         return res
 
 
+class LanguoidCol(Col):
+    def __init__(self, dt, name, **kw):
+        sq = DBSession.query(models.Village.languoid_pk).distinct().subquery()
+        kw['choices'] = [
+            (l.id, l.name) for l in
+            DBSession.query(common.Language).filter(common.Language.pk.in_(sq))]
+        Col.__init__(self, dt, name, **kw)
+
+    def search(self, qs):
+        return common.Language.id == qs
+
+    def order(self):
+        return common.Language.name
+
+    def format(self, item):
+        if item.languoid:
+            if item.languoid.in_project:
+                return link(self.dt.req, item.languoid)
+            return item.languoid.name
+
+
+class ImageCol(Col):
+    __kw__ = dict(bSearchable=False, bSortable=False)
+
+    def format(self, item):
+        if item._files:
+            return HTML.span('%s' % len(item._files), icon('camera', inverted=True), class_='badge')
+        return ''
+
+
 class Villages(DataTable):
-    pass
+    def base_query(self, query):
+        return query\
+            .outerjoin(models.Village.languoid)\
+            .outerjoin(models.Village._files)\
+            .options(
+                joinedload(models.Village.languoid),
+                joinedload(models.Village._files),
+            )
+
+    def col_defs(self):
+        return [
+            LinkCol(self, 'name'),
+            LinkToMapCol(self, '_'),
+            ImageCol(self, '#'),
+            LanguoidCol(self, 'language (group)'),
+            Col(self, 'major city', model_col=models.Village.major_city),
+            Col(self, 'surnames', model_col=models.Village.surnames),
+        ]
 
 
 def includeme(config):
