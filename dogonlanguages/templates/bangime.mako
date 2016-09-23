@@ -48,12 +48,12 @@
 
 <p>Below are links to materials we were able to salvage from Stefan's fieldwork, and to Abbie's working drafts.</p>
 
-<h3>Abbie Hantgan:</h3>
+<h3>Abbie Hantgan</h3>
 <ul>
 <li>${h.external_link('https://scholarworks.iu.edu/dspace/bitstream/handle/2022/18024/Hantgan_indiana_0093A_12443.pdf', label='Aspects of Bangime Phonology, Morphology and Morphosyntax')}</li>
 </ul>
 
-<h3>Stefan Elders:</h3>
+<h3>Stefan Elders</h3>
 <ul>
 <li>${h.external_link('Elders_memorial_CALL07.mov', label='Stefan Elders memorial video [Quicktime mov]')}</li>	
 <li>${h.external_link('BANGERI_ME_StefanElders_Book1.pdf', label='Bangeri Me 01 Vocabulaire - 295 pages [pdf] 212 MB [notebook scans]')}</li>	
