@@ -14,6 +14,7 @@ from fuzzywuzzy import fuzz
 from purl import URL
 from clldutils.dsv import reader
 from clldutils.path import walk, Path
+from clldutils.jsonlib import load
 
 from clld.lib.bibtex import Record, Database, unescape
 
@@ -315,18 +316,23 @@ FIELD_MAP = {
 
 @attr.s
 class VillageImage(object):
-    path = attr.ib()
+    name = attr.ib()
     description = attr.ib()
     date = attr.ib()
     creators = attr.ib()
     coords = attr.ib()
+    cdstar = attr.ib()
 
 
 def village_images(args):
-    for f in walk(Path('../images/Mali villages with coordinates for website'), mode='files'):
-        if (not f.stem.startswith('.')) and f.suffix.lower() == '.jpg':
-            _, coords, desc, date_, creators = image_md(f.stem)
-            yield VillageImage(f, desc, date_, creators, coords)
+    uploaded = load(args.data_file('repos', 'cdstar.json'))
+    files = load(
+        args.data_file('repos', 'Mali_villages_with_coordinates_for_website.json'))
+    for hash_, paths in files.items():
+        if hash_ in uploaded:
+            fname = Path(paths[0])
+            name, coords, desc, date_, creators = image_md(fname.stem)
+            yield VillageImage(fname.name, desc, date_, creators, coords, uploaded[hash_])
 
 
 def parse_deg(s):
@@ -386,6 +392,17 @@ def image_md(name):
     return totext(lang_and_name), coords, totext(desc), todate(date_), (totext(rem) or '').split()
 
 
+@attr.s
+class Village(object):
+    name = attr.ib()
+    normname = attr.ib()
+    glottocode = attr.ib()
+    data = attr.ib()
+    lat = attr.ib(default=0)
+    lon = attr.ib(default=0)
+    images = attr.ib(default=attr.Factory(list))
+
+
 def gps(args):
     """
     Multilingual,
@@ -439,18 +456,103 @@ def gps(args):
     Video,
     VideoTranscription
     """
+    full_name_map = {
+        'Oualo (upper)': 'walo_upper',
+        'Oualo (lower)': 'walo_lower',
+        'Kenntaba-Leye': 'kentabaley',
+        'Djimerou-Doungo': 'djimeroudungo',
+        'Sassourou': 'sassouru',
+        'Sege-Bougie': 'seguebougie',
+        'Fiko': 'ficko',
+        'Iribanga (Fulbe)': 'iribanga_fulbe',
+        'Madina (near Banggel-Toupe)': 'madina_near_bangueltoupe)',
+        'Dourou Tanga (1)': 'douroutanga_1',
+        'Dourou Tanga (2)': 'douroutanga_2',
+        'Dourou Tanga (3)': 'douroutanga_3',
+        'Tena (Tere)': 'tena_aka_tere',
+        'Anakaga (Amamounou)': 'anakaga_in_amamounou',
+        'Dari (near Hombori)': 'dari_near_hombori',
+        'Bamba Tene': 'bambatende',
+        'Kenntaba-Do': 'kentabado',
+        'Tialegel': 'tialeggel',
+        'Bani-Banggou': 'banibangou',
+        'Ourobangourdi': 'ourobaangourdi',
+        'Ourodjougal': 'ourodiouggal',
+        'Yadianga (Fulbe)': 'yadiangapoulogoro',
+        'Gueourou (Fulbe)': 'gueouroupulogoro',
+        'Tongoro-Legu': 'tongorolegou',
+        'Koundougou-Mossi': 'koundougoumouniougoro',
+        'Billanto-Bella': 'bella',
+        'Dianggassagou (Diemessogou)': 'diangassagou_aka_diemessogou)',
+    }
+    name_map = {
+        'kelmita': 'kelmitaa',
+        'yrebann': 'yreban',
+        'aouguine': 'aougine',
+        'bendielysigen': 'bendielisigen',
+        'bendielydana': 'bendielidana',
+        'ourongeou': 'ourongueou',
+        'oukoulourou': 'oukolourou',
+        'bendielygirikombo': 'bendieligirikombo',
+        'dianggassagou': 'diangassagou',
+        'komokanina': 'komokaninaa',
+        'dourouna': 'dourounaa',
+        'idielina': 'idielinaa',
+        'woltigueri': 'woltiguere',
+        'irelikanaw': 'ireli_kanaw',
+        'korimaounde': 'kori_maounde',
+        'yandaguinedia': 'yandaginedia',
+        'boudoufolii': 'boudoufoli_section1',
+        'boudoufoliii': 'boudoufoli_section2',
+    }
+
     for d in reader(
             args.data_file('repos', 'GPS_Dogon_spreadsheet_for_LLMAP.csv'), dicts=True):
-        d['glottocode'] = GPS_LANGS.get(d['Language (group)'])
-        if d['OfficialVillageName'] == 'Daidourou':
-            lat, lon = None, None
+        for k in d:
+            d[k] = d[k].strip()
+        normname = full_name_map.get(d['OfficialVillageName'].strip())
+        if normname is None:
+            normname = d['OfficialVillageName'].replace('-', '').replace(' ', '').replace('(', '_aka_').replace(')', '').split(',')[0].strip().lower()
+            normname = name_map.get(normname, normname)
+        v = Village(
+            d['OfficialVillageName'],
+            normname,
+            GPS_LANGS.get(d['Language (group)']),
+            data=d)
+
+        if v.name != 'Daidourou':
+            v.lat, v.lon = parse_deg(d['N Lat_2']), parse_deg(d['W Lon_2'])
+            if v.lon:
+                v.lon = -v.lon
+            if v.lon and v.lon < -10:
+                v.lon += 10
         else:
-            lat, lon = parse_deg(d['N Lat_2']), parse_deg(d['W Lon_2'])
-        if lat is not None:
-            if not (12 < lat < 20):
-                print('lat', lat, d['OfficialVillageName'], d['N Lat_2'])
-        if lon is not None:
-            if not (0 < lon < 15):
-                print('lon', lon, d['OfficialVillageName'], d['W Lon_2'])
-        if lat and lon:
-            yield lat, -lon, d
+            v.lat, v.lon = None, None
+        yield v
+
+
+def get_villages(args):
+    villages = sorted(list(gps(args)), key=lambda v: -len(v.normname))
+    for img in village_images(args):
+        imgname = img.name.lower()
+        for v in villages:
+            comp = imgname
+            if '_near_' not in v.normname:
+                comp = comp.split('_near_')[0] + '_'
+
+            if '_%s_' % v.normname in comp:
+                v.images.append(img)
+                break
+        else:
+            for v in villages:
+                if '_aka_' in v.normname:
+                    comp = imgname
+                    if '_near_' not in v.normname:
+                        comp = comp.split('_near_')[0] + '_'
+
+                    if '_%s_' % v.normname.split('_aka_')[0] in comp:
+                        v.images.append(img)
+                        break
+            else:
+                print('not matched: %s' % img.name)
+    return villages

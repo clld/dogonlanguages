@@ -132,6 +132,10 @@ class LatLonMixin(object):
 class Village_files(Base, FilesMixin, LatLonMixin):
     date_created = Column(Date)
 
+    def cdstar_url(self, type_='original'):
+        return 'https://cdstar.shh.mpg.de/bitstreams/{0}/{1}'.format(
+            self.jsondata['objid'], self.jsondata.get(type_) or self.jsondata['original'])
+
 
 @implementer(IVillage)
 class Village(Base, IdNameDescriptionMixin, HasFilesMixin, LatLonMixin):

@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 import sys
 import re
-from collections import defaultdict, Counter
+from collections import defaultdict
 from mimetypes import guess_type
 
 import attr
@@ -45,8 +45,7 @@ f = [
 
 
 def main(args):
-    village_images = {f.path.stem: f for f in util.village_images(args)}
-    print('got %s images' % len(village_images))
+    villages = util.get_villages(args)
 
     if Glottolog:
         glottolog = Glottolog(
@@ -80,14 +79,9 @@ def main(args):
         id_ = slug(c.name.split()[-1])
         data.add(models.Member, id_, id=id_, **attr.asdict(c))
 
-    for i, spec in enumerate([
-        ('heath', "Jeffrey Heath"),
-        ('moran', "Steven Moran"),
-    ]):
+    for i, id_ in enumerate(['heath', 'moran']):
         DBSession.add(common.Editor(
-            dataset=dataset,
-            ord=i + 1,
-            contributor=data['Member'][spec[0]]))
+            dataset=dataset, ord=i + 1, contributor=data['Member'][id_]))
 
     url_resolver = util.UrlResolver(args)
     contrib = data.add(common.Contribution, 'd', id='d', name='Dogon Languages')
@@ -129,65 +123,51 @@ def main(args):
             family=gl_lang.family.name if gl_lang and gl_lang.family else name,
         )
 
-    print(len(village_images))
     contrib_by_initial = {c.abbr: c for c in data['Member'].values()}
-    for lat, lon, d in util.gps(args):
-        key = slug(d['OfficialVillageName'])
-        if key not in data['Village']:
-            if d['glottocode']:
-                lang = data['Languoid'].get(d['glottocode'])
-                if not lang:
-                    gl_lang = languoids[d['glottocode']]
-                    lang = data.add(
-                        models.Languoid, gl_lang.id, id=gl_lang.id, name=gl_lang.name, in_project=False, family=gl_lang.family.name if gl_lang.family else gl_lang.name)
-            else:
-                lang = None
-            village = data.add(
-                models.Village, key,
-                id=key,
-                name=d['OfficialVillageName'],
-                description=d['social info'],
-                surnames=d['surnames'],
-                major_city=d['MajorCity'] == 'Y',
-                transcribed_name=d['Transcribed Village Name'],
-                source_of_coordinates=d['sourceOfCoordinates'],
-                latitude=lat,
-                longitude=lon,
-                languoid=lang,
-                jsondata=d,
-            )
-            normname = d['OfficialVillageName'].replace('-', '').split('(')[0].strip()
-            k = 0
-            for n in village_images.keys()[:]:
-                if '_%s_' % normname in n:
-                    img = village_images[n]
-                    mimetype = guess_type(img.path.name)[0]
-                    if mimetype:
-                        k += 1
-                        f = models.Village_files(
-                            id='%s-%s' % (key, k),
-                            name=n,
-                            description=img.description,
-                            date_created=img.date,
-                            latitude=img.coords[0] if img.coords else None,
-                            longitude=-img.coords[1] if img.coords else None,
-                            object=village,
-                            mime_type=mimetype,
-                        )
-                        with img.path.open('rb') as fp:
-                            f.create(args.data_file('files'), fp.read())
-                        for initial in img.creators:
-                            if initial in contrib_by_initial:
-                                models.Fotographer(
-                                    foto=f,
-                                    contributor=contrib_by_initial[initial])
-
-                    del village_images[n]
-                    #else:
-                    #    print('no image', normname)
-
-    print(len(village_images))
-    #return
+    for i, village in enumerate(villages):
+        lang = None
+        if village.glottocode:
+            lang = data['Languoid'].get(village.glottocode)
+            if not lang:
+                gl_lang = languoids[village.glottocode]
+                lang = data.add(
+                    models.Languoid, gl_lang.id,
+                    id=gl_lang.id,
+                    name=gl_lang.name,
+                    in_project=False,
+                    family=gl_lang.family.name if gl_lang.family else gl_lang.name)
+        v = data.add(
+            models.Village, str(i + 1),
+            id=str(i + 1),
+            name=village.name,
+            description=village.data.pop('social info'),
+            surnames=village.data.pop('surnames'),
+            major_city=village.data['MajorCity'] == 'Y',
+            transcribed_name=village.data.pop('Transcribed Village Name'),
+            source_of_coordinates=village.data.pop('sourceOfCoordinates'),
+            latitude=village.lat,
+            longitude=village.lon,
+            languoid=lang,
+            jsondata=village.data,
+        )
+        for j, img in enumerate(village.images):
+            mimetype = guess_type(img.name)[0]
+            if mimetype:
+                f = models.Village_files(
+                    id='%s-%s' % (v.id, j + 1),
+                    name=img.name,
+                    description=img.description,
+                    date_created=img.date,
+                    latitude=img.coords[0] if img.coords else None,
+                    longitude=-img.coords[1] if img.coords else None,
+                    object=v,
+                    mime_type=mimetype,
+                    jsondata=img.cdstar,
+                )
+                for initial in img.creators:
+                    if initial in contrib_by_initial:
+                        models.Fotographer(
+                            foto=f, contributor=contrib_by_initial[initial])
 
     names = defaultdict(int)
     cids = {}

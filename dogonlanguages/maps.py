@@ -8,6 +8,7 @@ from clld.web.icon import MapMarker as BaseMapMarker
 from clldutils.misc import dict_merged
 
 from dogonlanguages.interfaces import IVillage
+from dogonlanguages.scripts.data import LANGUAGES
 
 
 OPTIONS = {'show_labels': True, 'max_zoom': 12, 'base_layer': "Esri.WorldImagery"}
@@ -100,6 +101,8 @@ DOGON_MARKER = {
     "pena1270": "tffcc00",
 }
 
+GC_TO_NAME = {v[0]: k for k, v in LANGUAGES.items()}
+
 
 class MapMarker(BaseMapMarker):
     def get_icon(self, ctx, req):
@@ -121,9 +124,26 @@ class VillagesMap(Map):
     def get_legends(self):
         for legend in Map.get_legends(self):
             yield legend
-        items = [
-            HTML.span(HTML.img(src=self.req.static_url('clld:web/static/icons/%s.png' % u)), HTML.span(l))
-            for l, u in list(FAMILY_MARKER.items()) + [('unknown', FAMILY_MARKER['x'])]]
+
+        def header(label):
+            return HTML.h5(label, style='padding-left:5px;margin-top:0;margin-bottom:0')
+
+        def make_item(label, icon):
+            return HTML.span(
+                HTML.img(
+                    width=16,
+                    height=16,
+                    src=self.req.static_url('clld:web/static/icons/%s.png' % icon)),
+                HTML.span(label, style='padding-left:5px'),
+                style='padding-left:5px')
+
+        items = [header('Dogon')]
+        items.extend(
+            [make_item(GC_TO_NAME[gc], icon) for gc, icon in DOGON_MARKER.items()])
+        items.append(header('Other'))
+        items.extend(
+            [make_item(name, icon) for name, icon in FAMILY_MARKER.items() if name != 'Dogon'])
+        items.append(make_item('unknown', FAMILY_MARKER['x']))
         yield Legend(self, 'families', items)
 
 
