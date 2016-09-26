@@ -44,15 +44,18 @@
 </table>
 
 % if videos:
+    <ul class="inline">
     % for vid in videos:
-<video id="video_${vid.pk}" class="video-js vjs-default-skin"
-       controls preload="auto" width="640" height="264"
-       ##poster="http://video-js.zencoder.com/oceans-clip.png"
-       data-setup='{"example_option":true}'>
-    <source src="${request.file_url(vid)}" type='video/mp4' />
-    <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
-    </video>
+        <li><a href="${u.cdstar_url(vid)}"><span class="badge">${h.icon('film', inverted=True)} [${vid.name.split('.')[-1]}] ${vid.mime_type}</span></a></li>
+##<video id="video_${vid.pk}" class="video-js vjs-default-skin"
+##       controls preload="auto" width="640" height="264"
+##       ##poster="http://video-js.zencoder.com/oceans-clip.png"
+##       data-setup='{"example_option":true}'>
+##    <source src="${u.cdstar_url(vid)}" type='${vid.mime_type}' />
+##    <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
+##   </video>
     % endfor
+    </ul>
 % endif
 
 % for chunk in [images[i:i + 3] for i in range(0, len(images), 3)]:
@@ -60,7 +63,9 @@
 % for f in chunk:
     <div class="span4">
         <div class="well">
-            <img src="${request.file_url(f)}" class="image"/>
+            <a href="${u.cdstar_url(f)}" title="view image">
+                <img src="${u.cdstar_url(f, 'web')}" class="image"/>
+            </a>
         </div>
     </div>
 % endfor

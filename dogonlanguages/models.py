@@ -58,7 +58,6 @@ class Concept(CustomModelMixin, Parameter):
     """
     pk = Column(Integer, ForeignKey('parameter.pk'), primary_key=True)
 
-    ref = Column(Integer, nullable=False, unique=True)
     core = Column(Boolean, nullable=False)
     subdomain_pk = Column(Integer, ForeignKey('subdomain.pk'))
     subdomain = relationship(Subdomain, backref='concepts')
@@ -67,17 +66,16 @@ class Concept(CustomModelMixin, Parameter):
     species = Column(Unicode)
     family = Column(Unicode)
 
-    @reify
-    def thumbnail(self):
-        for f in self._files:
-            if f.mime_type.startswith('image'):
-                return self._files[0]
+    count_videos = Column(Integer, default=0)
+    count_images = Column(Integer, default=0)
 
-    @reify
-    def video(self):
-        for f in self._files:
-            if f.mime_type.startswith('video'):
-                return self._files[0]
+    @property
+    def videos(self):
+        return [f for f in self._files if f.mime_type.startswith('video')]
+
+    @property
+    def images(self):
+        return [f for f in self._files if f.mime_type.startswith('image')]
 
     @property
     def eol_url(self):

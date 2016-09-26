@@ -29,15 +29,19 @@ class ProjectMembers(Contributors):
         ]
 
 
-class ThumbnailCol(Col):
-    __kw__ = dict(bSearchable=False, bSortable=False)
-
+class VideosCol(Col):
     def format(self, item):
-        item = self.get_obj(item)
-        if item.thumbnail:
-            return HTML.img(class_='img-rounded', src=self.dt.req.file_url(item.thumbnail))
-        if item.video:
-            return icon('film')
+        if item.count_videos:
+            return HTML.span(
+                '%s' % item.count_videos, icon('film', inverted=True), class_='badge')
+        return ''
+
+
+class ImagesCol(Col):
+    def format(self, item):
+        if item.count_images:
+            return HTML.span(
+                '%s' % item.count_images, icon('camera', inverted=True), class_='badge')
         return ''
 
 
@@ -49,7 +53,8 @@ class Concepts(Parameters):
         return [
             Col(self, 'ID', model_col=common.Parameter.id),
             LinkCol(self, 'gloss', model_col=common.Parameter.name),
-            ThumbnailCol(self, 'thumbnail'),
+            ImagesCol(self, 'images', model_col=models.Concept.count_images),
+            VideosCol(self, 'videos', model_col=models.Concept.count_videos),
             Col(self, 'domain',
                 choices=get_distinct_values(models.Domain.name),
                 get_object=lambda i: i.subdomain.domain,
