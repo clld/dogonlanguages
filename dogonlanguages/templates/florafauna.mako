@@ -43,6 +43,11 @@ are compiled from the literature and from our own accumulated knowledge. No proj
 professional biologist. We plan to expand these guides by incorporating ethnobiological information.
 Send comments and corrections to Jeffrey Heath at this address: schweinehaxen (at) hotmail.com.
 </p>
+<ul>
+    % for s in notes:
+    <li>${h.link(request, s, label=s.title)}</li>
+    % endfor
+</ul>
 
 ## Click links to the various online guides (they may be slow to load):
 

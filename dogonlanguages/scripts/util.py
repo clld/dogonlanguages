@@ -117,16 +117,16 @@ class Document(object):
 
 def get_bib(args):
     uploaded = load(args.data_file('repos', 'cdstar.json'))
-    url_to_cdstar = {}
-    for type_ in ['texts', 'docs']:
+    fname_to_cdstar = {}
+    for type_ in ['texts', 'docs', 'data']:
         for hash_, paths in load(args.data_file('repos', type_ + '.json')).items():
             if hash_ in uploaded:
                 for path in paths:
-                    url_to_cdstar[re.sub('^images', '', path)] = uploaded[hash_]
+                    fname_to_cdstar[path.split('/')[-1]] = uploaded[hash_]
     for hash_, paths in load(args.data_file('repos', 'edmond.json')).items():
         if hash_ in uploaded:
             for path in paths:
-                url_to_cdstar[path.split('/')[-1]] = uploaded[hash_]
+                fname_to_cdstar[path.split('/')[-1]] = uploaded[hash_]
     db = Database.from_file(args.data_file('repos', 'Dogon.bib'), lowercase=True)
     keys = defaultdict(int)
     for rec in db:
@@ -135,14 +135,15 @@ def get_bib(args):
         doc = Document(rec)
         newurls = []
         for url in rec.get('url', '').split(';'):
+            if not url.strip():
+                continue
+            if url.endswith('sequence=1'):
+                newurls.append(url)
+                continue
             url = URL(url.strip())
-            if url.host() == 'dogonlanguages.org':
-                if url.path() in url_to_cdstar:
-                    doc.files.append((url.path(), url_to_cdstar[url.path()]))
-                elif url.path().split('/')[-1] in url_to_cdstar:
-                    doc.files.append((url.path(), url_to_cdstar[url.path().split('/')[-1]]))
-                else:
-                    newurls.append(url.as_string())
+            if url.host() in ['dogonlanguages.org', 'github.com', '']:
+                fname = url.path().split('/')[-1]
+                doc.files.append((fname, fname_to_cdstar[fname]))
             else:
                 newurls.append(url.as_string())
         doc.rec['url'] = '; '.join(newurls)

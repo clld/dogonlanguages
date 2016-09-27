@@ -55,9 +55,12 @@
 
 <h3>Stefan Elders</h3>
 <ul>
-<li>${h.external_link('Elders_memorial_CALL07.mov', label='Stefan Elders memorial video [Quicktime mov]')}</li>	
-<li>${h.external_link('BANGERI_ME_StefanElders_Book1.pdf', label='Bangeri Me 01 Vocabulaire - 295 pages [pdf] 212 MB [notebook scans]')}</li>	
-<li>${h.external_link('BANGERI_ME_StefanElders_Book2.pdf', label='Bangeri Me 02 Phrases - 168 pages [pdf] 84 MB [notebook scans]')}</li>	
-<li>${h.external_link('docs/blacksmith_vocab.pdf', label='Blacksmith Vocabulary (illustrated with pictures) [pdf] 2.8 MB [photos, organized by Abbie]')}</li>	
-<li>${h.external_link('Elders_BangeriBamako8dec06.pdf', label='Presentation du bangeri me [pdf] [5-page handout for a workshop in Bamako, Dec 08 2006]')}</li>	
+    % for s in docs.values():
+        <li>${h.link(request, s, label=s.title)}</li>
+    % endfor
+##<li>${h.external_link('Elders_memorial_CALL07.mov', label='Stefan Elders memorial video [Quicktime mov]')}</li>
+##<li>${h.external_link('BANGERI_ME_StefanElders_Book1.pdf', label='Bangeri Me 01 Vocabulaire - 295 pages [pdf] 212 MB [notebook scans]')}</li>
+##<li>${h.external_link('BANGERI_ME_StefanElders_Book2.pdf', label='Bangeri Me 02 Phrases - 168 pages [pdf] 84 MB [notebook scans]')}</li>
+##<li>${h.external_link('docs/blacksmith_vocab.pdf', label='Blacksmith Vocabulary (illustrated with pictures) [pdf] 2.8 MB [photos, organized by Abbie]')}</li>
+##<li>${h.external_link('Elders_BangeriBamako8dec06.pdf', label='Presentation du bangeri me [pdf] [5-page handout for a workshop in Bamako, Dec 08 2006]')}</li>
 </ul>

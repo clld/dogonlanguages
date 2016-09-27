@@ -27,6 +27,7 @@ from dogonlanguages.scripts.data import LANGUAGES, LEX_LANGS
 def main(args):
     villages = util.get_villages(args)
     ff_images = list(util.ff_images(args))
+    bib = list(util.get_bib(args))
 
     if Glottolog:
         glottolog = Glottolog(
@@ -65,7 +66,7 @@ def main(args):
             dataset=dataset, ord=i + 1, contributor=data['Member'][id_]))
 
     contrib = data.add(common.Contribution, 'd', id='d', name='Dogon Languages')
-    for doc in util.get_bib(args):
+    for doc in bib:
         obj = data.add(
             models.Document,
             doc.rec.id,

@@ -15,8 +15,11 @@ def main(global_config, **settings):
     """
     settings['route_patterns'] = {
         'villages': '/geography.cfm',
+        'parameters': '/thesaurus.cfm',
+        'sources': '/bibliography.cfm',
         'languages': '/languages.cfm',
         'florafauna': '/florafauna.cfm',
+        'bangime': '/bangime.cfm',
     }
     config = Configurator(settings=settings)
     config.include('clldmpg')
