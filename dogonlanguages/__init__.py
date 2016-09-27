@@ -13,6 +13,11 @@ from dogonlanguages import views
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
+    settings['route_patterns'] = {
+        'villages': '/geography.cfm',
+        'languages': '/languages.cfm',
+        'florafauna': '/florafauna.cfm',
+    }
     config = Configurator(settings=settings)
     config.include('clldmpg')
     config.register_menu(
