@@ -3,6 +3,8 @@ from math import floor
 
 from six import text_type
 from clld.web.util.htmllib import HTML
+from clld.web.util.helpers import icon
+from clldutils.misc import format_size
 
 
 def eol_link(req, species):
@@ -17,6 +19,15 @@ def eol_link(req, species):
 def cdstar_url(obj, type_='original'):
     return 'https://cdstar.shh.mpg.de/bitstreams/{0}/{1}'.format(
         obj.jsondata['objid'], obj.jsondata.get(type_) or obj.jsondata['original'])
+
+
+def format_file(f):
+    icon_ = {
+        'image': 'camera',
+        'video': 'facetime-video',
+    }.get(f.mime_type.split('/')[0], 'file')
+    label = ' [%s; %s]' % (f.mime_type, format_size(f.jsondata['size']))
+    return HTML.span(icon(icon_, inverted=True), label, class_='badge')
 
 
 def format_coordinates(obj):

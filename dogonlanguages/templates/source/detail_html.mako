@@ -51,7 +51,7 @@ ${ctx.coins(request)|n}
         % if ctx._files:
             <ul class="unstyled">
                 % for c in ctx._files:
-                    <li><a href="${u.cdstar_url(c)}"><span class="badge">${c.mime_type} ${h.icon('file', inverted=True)}</span></a></li>
+                    <li><a href="${u.cdstar_url(c)}">${u.format_file(c)}</a></li>
                 % endfor
             </ul>
         % endif

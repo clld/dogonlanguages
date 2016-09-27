@@ -1,9 +1,6 @@
 from __future__ import print_function, division, unicode_literals
-from math import floor
 
-from six import text_type
 from zope.interface import implementer
-from pyramid.decorator import reify
 from sqlalchemy import (
     Column,
     Unicode,
