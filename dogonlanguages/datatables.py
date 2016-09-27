@@ -163,23 +163,6 @@ class Words(Values):
         return res
 
 
-class FloraFauna(Words):
-    def base_query(self, query):
-        query = query.join(common.ValueSet)
-        return query \
-            .join(common.Parameter) \
-            .join(models.Subdomain) \
-            .join(models.Domain) \
-            .filter(models.Domain.name.in_(['flora', 'fauna'])) \
-            .options(
-                joinedload_all(
-                    common.Value.valueset,
-                    common.ValueSet.parameter,
-                    models.Concept.subdomain,
-                    models.Subdomain.domain)
-            )
-
-
 class LanguoidCol(Col):
     def __init__(self, dt, name, **kw):
         sq = DBSession.query(models.Village.languoid_pk).distinct().subquery()

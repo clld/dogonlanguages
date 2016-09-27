@@ -63,9 +63,7 @@
 % for f in chunk:
     <div class="span4">
         <div class="well">
-            <a href="${u.cdstar_url(f)}" title="view image">
-                <img src="${u.cdstar_url(f, 'web')}" class="image"/>
-            </a>
+            ${u.linked_image(f)|n}
         </div>
     </div>
 % endfor
