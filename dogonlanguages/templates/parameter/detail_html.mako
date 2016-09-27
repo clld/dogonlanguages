@@ -46,7 +46,7 @@
 % if videos:
     <ul class="inline">
     % for vid in videos:
-        <li><a href="${u.cdstar_url(vid)}"><span class="badge">${h.icon('film', inverted=True)} [${vid.name.split('.')[-1]}] ${vid.mime_type}</span></a></li>
+        <li><a href="${u.cdstar_url(vid)}">${u.format_file(vid)}</a></li>
 ##<video id="video_${vid.pk}" class="video-js vjs-default-skin"
 ##       controls preload="auto" width="640" height="264"
 ##       ##poster="http://video-js.zencoder.com/oceans-clip.png"
