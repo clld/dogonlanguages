@@ -6,10 +6,12 @@
 <h2>${_('Languages')}</h2>
 <p>
     The inventory below of Dogon languages is based partially on our own work and partially
-    on the literature, primarily the SIL survey and the survey work by Roger Blench
-    (see links at end). Bangime is not a Dogon language genetically, and at least in the 4
-    West African context it is a language isolate. See also the "typology" page on this
-    website for typological profiles.
+    on the literature, primarily the SIL survey (${h.link(request, refs['Hochstetler_etal2004'])})
+    and the survey work by Roger Blench (${h.link(request, refs['Blench2007'])}, ${h.link(request, refs['Blench2005'])}).
+    Bangime is not a Dogon language genetically, and at least in the
+    West African context it is a language isolate. See also the "typology" documents in the
+    <a href="${request.route_url('sources')}">bibliography</a> for typological profiles.
+    Blench's remarks on Bangime can be found in ${h.link(request, refs['Blench2005b'])} and ${h.link(request, refs['Blench2007b'])}.
 </p>
 <p>
     There is some evidence for a binary genetic split between eastern Dogon and western

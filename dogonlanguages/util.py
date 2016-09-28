@@ -91,6 +91,13 @@ def format_coordinates(obj):
     return ' '.join(lines)
 
 
+def language_index_html(context=None, request=None, **kw):
+    return {
+        'refs': {
+            k: Source.get(misc.slug(k)) for k in
+            'Hochstetler_etal2004 Blench2007 Blench2005 Blench2005b Blench2007b'.split()}}
+
+
 def value_index_html(context=None, request=None, **kw):
     ids = 'heathetal2015 floradogonunicode faunadogonunicode'.split()
     return {
