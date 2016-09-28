@@ -1,15 +1,14 @@
 from __future__ import unicode_literals
 import sys
-import re
 from collections import defaultdict
 from mimetypes import guess_type
 
+from sqlalchemy.orm import joinedload
 import attr
-from purl import URL
 from clldutils.dsv import reader
 from clldutils.misc import slug, nfilter
-from clldutils import jsonlib
 from clldutils.path import Path
+from clldutils import jsonlib
 
 from clld.scripts.util import initializedb, Data, bibtex2source
 from clld.db.meta import DBSession
@@ -25,27 +24,10 @@ from dogonlanguages.scripts import util
 from dogonlanguages.scripts.data import LANGUAGES, LEX_LANGS
 
 
-f = [
-"code_eng",  # category
-"subcode_eng",  # subcategory
-"code_fr",
-"sous_code_fr",
-"code", "subcode", "subsubcode",  # make up id!
-"short",
-"court",
-"ref",
-"jpg",
-"video",
-"date",
-"comment",
-"English",  # meaning
-"Francais",
-"core",  # 1 or 0
-]
-
-
 def main(args):
     villages = util.get_villages(args)
+    ff_images = list(util.ff_images(args))
+    bib = list(util.get_bib(args))
 
     if Glottolog:
         glottolog = Glottolog(
@@ -84,7 +66,7 @@ def main(args):
             dataset=dataset, ord=i + 1, contributor=data['Member'][id_]))
 
     contrib = data.add(common.Contribution, 'd', id='d', name='Dogon Languages')
-    for doc in util.get_bib(args):
+    for doc in bib:
         obj = data.add(
             models.Document,
             doc.rec.id,
@@ -165,50 +147,33 @@ def main(args):
                             foto=f, contributor=contrib_by_initial[initial])
 
     names = defaultdict(int)
-    cids = {}
+    for concept in reader(args.data_file('repos', 'flora_Dogon_Unicode.csv'), delimiter=',', dicts=True):
+        add(util.ff_to_standard(concept), data, names, contrib, ff=True)
+
     for concept in reader(args.data_file('repos', 'fauna_Dogon_Unicode.csv'), delimiter=',', dicts=True):
-        add(languoids, cids, util.ff_to_standard(concept), data, names, contrib, ff=True)
+        add(util.ff_to_standard(concept), data, names, contrib, ff=True)
 
     for concept in reader(args.data_file('repos', 'dogon_lexicon.csv'), delimiter=',', escapechar='\\', namedtuples=True):
-        add(languoids, cids, concept, data, names, contrib)
+        add(concept, data, names, contrib)
 
-    ref_pattern = re.compile('(?P<ref>[0-9]{5})')
     count = 0
-    for i, img in enumerate(reader(args.data_file('repos', 'dogon_flora-fauna.csv'), delimiter=',', namedtuples=True)):
-        match = ref_pattern.search(img.filenames)
-        if match and match.group('ref') in data['Concept']:
-            #print 'image for', data['Concept'][match.group('ref')].name
-            concept = data['Concept'][match.group('ref')]
-            content = util.get_thumbnail(args, img.filenames)
-            if content:
-                ext = img.filenames.lower().split('.')[-1]
-                f = common.Parameter_files(
+    for i, img in enumerate(ff_images):
+        if img.ref:
+            if img.ref in data['Concept']:
+                concept = data['Concept'][img.ref]
+                common.Parameter_files(
                     object=concept,
-                    id=str(i + 1) + '.' + ext,
-                    name=img.filenames,
-                    mime_type='image/tiff' if ext.startswith('tif') else 'image/jpeg')
-                f.create(files_dir, content)
+                    id=str(i + 1),
+                    name=img.name.decode('utf8'),
+                    mime_type=guess_type(img.name)[0],
+                    jsondata=img.cdstar)
                 count += 1
-    print count, 'images detected'
-
-    count = 0
-    #for i, vid in enumerate(args.data_file('video', 'mp4').files('*.mp4')):
-    #    match = ref_pattern.search(vid.basename())
-    #    if match:
-    #        ref = str(int(match.group('ref')))
-    #        if ref in data['Concept']:
-    #            concept = data['Concept'][ref]
-    #            f = common.Parameter_files(
-    #                object=concept,
-    #                id=str(i + 1) + '.mp4',
-    #                name=vid.basename(),
-    #                mime_type='video/mp4')
-    #            f.create(files_dir, open(vid, 'rb').read())
-    #            count += 1
-    #print count, 'videos detected'
+            else:
+                print('missing ref: %s' % img.ref)
+    print(count, 'images detected')
 
 
-def add(languoids, cids, concept, data, names, contrib, ff=False):
+def add(concept, data, names, contrib, ff=False):
     domain = data['Domain'].get(concept.code)
     if domain is None:
         domain = data.add(
@@ -229,31 +194,21 @@ def add(languoids, cids, concept, data, names, contrib, ff=False):
         except:
             print scid, concept.English
             return
-    cid = '-'.join([scid, concept.subsubcode.replace('.', '_')])
-    if cid in data['Concept']:
-        print '-->', cid, concept.English
-        print data['Concept'][cid].name
-        return
 
+    cid = '%05d' % int(concept.ref)
     if concept.English in names:
         name = '%s (%s)' % (concept.English, names[concept.English] + 1)
     else:
         name = concept.English
     names[concept.English] += 1
 
-    if cid in cids:
-        print '***', cid, concept.ref, concept.English
-        return
-    cids[cid] = 1
-
-    c = data['Concept'].get(concept.ref)
+    c = data['Concept'].get(cid)
     if c is None:
         c = data.add(
-            models.Concept, concept.ref,
+            models.Concept, cid,
             core=concept.core == '1',
             id=cid,
             name=name,
-            ref=int(concept.ref),
             ff=ff,
             description=concept.Francais,
             subdomain=subdomain)
@@ -261,15 +216,11 @@ def add(languoids, cids, concept, data, names, contrib, ff=False):
             c.species = concept.species
             c.family = concept.family
     else:
-        print '***', cid, concept.ref, concept.English
-        return
+        assert cid == '50325'
 
     for i, (l, gc) in enumerate(LEX_LANGS):
         lang = data['Languoid'].get(gc)
-        if lang is None:
-            print(l)
-            raise ValueError
-
+        assert lang
         forms = (getattr(concept, l) or '').strip()
         if not forms:
             continue
@@ -281,14 +232,12 @@ def add(languoids, cids, concept, data, names, contrib, ff=False):
             contribution=contrib,
             parameter=c)
         for j, form in enumerate(nfilter(util.split_words(forms))):
-            v = models.Counterpart(
-                id='-'.join([cid, str(i + 1), str(j + 1)]),
-                valueset=vs,
-                **util.parse_form(form))
-
-    #
-    # TODO: identify forms!
-    #
+            attrs = util.parse_form(form)
+            if attrs['name'] and attrs['name'] != 'xxx':
+                v = models.Counterpart(
+                    id='-'.join([cid, str(i + 1), str(j + 1)]),
+                    valueset=vs,
+                    **util.parse_form(form))
 
 
 def prime_cache(args):
@@ -297,9 +246,11 @@ def prime_cache(args):
     it will have to be run periodically whenever data has been updated.
     """
     sdata = jsonlib.load(args.data_file('repos', 'classification.json'))
-    for species in DBSession.query(models.Concept).filter(models.Concept.ff == True):
-        if species.id in sdata:
-            util.update_species_data(species, sdata[species.id])
+    for concept in DBSession.query(models.Concept).options(joinedload(common.Parameter._files)):
+        for t_ in ['image', 'video']:
+            setattr(concept, 'count_{0}s'.format(t_), len(getattr(concept, t_ + 's')))
+        if concept.id in sdata:
+            util.update_species_data(concept, sdata[concept.id])
 
 
 if __name__ == '__main__':

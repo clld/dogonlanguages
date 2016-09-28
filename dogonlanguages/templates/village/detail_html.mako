@@ -58,11 +58,8 @@
     % for file in files:
             <div class="span4 well">
                 <div>
-                    <a href="${u.cdstar_url(file)}" title="view image">
-                        <img src="${u.cdstar_url(file, 'web')}" class="image"/>
-                    </a>
+                    ${u.linked_image(file)|n}
                 </div>
-                ##<div class="span3">
                     <dl>
                         <dt>Description</dt>
                         <dd>${file.description}</dd>
@@ -83,7 +80,6 @@
                             <dd>${u.format_coordinates(file)}</dd>
                         % endif
                     </dl>
-                ##</div>
             </div>
     % endfor
 </div>

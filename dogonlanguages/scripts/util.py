@@ -1,18 +1,15 @@
 # coding=utf8
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import re
 from hashlib import md5
-from io import open
-import shutil
 from collections import defaultdict
 
 from purl import URL
 import attr
 import dateutil
-import requests
 from fuzzywuzzy import fuzz
 from clldutils.dsv import reader
-from clldutils.path import walk, Path
+from clldutils.path import Path
 from clldutils.jsonlib import load
 
 from clld.lib.bibtex import Record, Database, unescape
@@ -66,6 +63,7 @@ def split_words(s):
 
 
 def parse_form(form):
+    form = form.strip()
     attrs = {}
     parts = form.split('(', 1)
     if len(parts) == 2:
@@ -74,7 +72,7 @@ def parse_form(form):
             if parts[1].endswith('"'):
                 parts[1] += ')'
             else:
-                print '---->', parts[1]
+                #print(form, '->', parts[1])
                 return {'name': form}
         comment = parts[1][:-1].strip()
         if comment.startswith('"') and comment.endswith('"'):
@@ -84,22 +82,6 @@ def parse_form(form):
     else:
         attrs['name'] = form
     return attrs
-
-
-def get_thumbnail(args, filename):
-    path = args.data_file('repos', 'thumbnails', filename.encode('utf8'))
-    if not path.exists():
-        #print path
-        return
-        r = requests.get('http://dogonlanguages.org/thumbnails/' + filename, stream=True)
-        if r.status_code == 200:
-            with open(path, 'wb') as f:
-                r.raw.decode_content = True
-                shutil.copyfileobj(r.raw, f)
-        else:
-            return
-    with open(path.as_posix(), 'rb') as f:
-        return f.read()
 
 
 KV_PATTERN = re.compile('(?P<key>[A-Za-z]+)\s*\=\s*\{(?P<value>.*)$', re.MULTILINE)
@@ -135,16 +117,16 @@ class Document(object):
 
 def get_bib(args):
     uploaded = load(args.data_file('repos', 'cdstar.json'))
-    url_to_cdstar = {}
-    for type_ in ['texts', 'docs']:
+    fname_to_cdstar = {}
+    for type_ in ['texts', 'docs', 'data']:
         for hash_, paths in load(args.data_file('repos', type_ + '.json')).items():
             if hash_ in uploaded:
                 for path in paths:
-                    url_to_cdstar[re.sub('^images', '', path)] = uploaded[hash_]
+                    fname_to_cdstar[path.split('/')[-1]] = uploaded[hash_]
     for hash_, paths in load(args.data_file('repos', 'edmond.json')).items():
         if hash_ in uploaded:
             for path in paths:
-                url_to_cdstar[path.split('/')[-1]] = uploaded[hash_]
+                fname_to_cdstar[path.split('/')[-1]] = uploaded[hash_]
     db = Database.from_file(args.data_file('repos', 'Dogon.bib'), lowercase=True)
     keys = defaultdict(int)
     for rec in db:
@@ -153,15 +135,15 @@ def get_bib(args):
         doc = Document(rec)
         newurls = []
         for url in rec.get('url', '').split(';'):
+            if not url.strip():
+                continue
+            if url.endswith('sequence=1'):
+                newurls.append(url)
+                continue
             url = URL(url.strip())
-            if url.host() == 'dogonlanguages.org':
-                if url.path() in url_to_cdstar:
-                    doc.files.append((url.path(), url_to_cdstar[url.path()]))
-                elif url.path().split('/')[-1] in url_to_cdstar:
-                    print('found on edmond: %s' % url.path())
-                    doc.files.append((url.path(), url_to_cdstar[url.path().split('/')[-1]]))
-                else:
-                    newurls.append(url.as_string())
+            if url.host() in ['dogonlanguages.org', 'github.com', '']:
+                fname = url.path().split('/')[-1]
+                doc.files.append((fname, fname_to_cdstar[fname]))
             else:
                 newurls.append(url.as_string())
         doc.rec['url'] = '; '.join(newurls)
@@ -318,6 +300,51 @@ FIELD_MAP = {
 
 
 @attr.s
+class FFImage(object):
+    name = attr.ib()
+    description = attr.ib()
+    ref = attr.ib()
+    date = attr.ib()
+    creators = attr.ib()
+    cdstar = attr.ib()
+
+
+def ff_images(args):
+    ref_pattern = re.compile('(?P<ref>[0-9]{5})')
+    uploaded = load(args.data_file('repos', 'cdstar.json'))
+    files = load(args.data_file('repos', 'Heath_flora_fauna_images.json'))
+    files.update(load(args.data_file('repos', 'ffmissing.json')))
+    path_to_md5 = {}
+    for md5, paths in files.items():
+        for path in paths:
+            path_to_md5[Path(path.encode('utf8')).stem] = md5
+    missed, found, uploaded_ = 0, 0, 0
+    for i, img in enumerate(reader(args.data_file('repos', 'dogon_flora-fauna.csv'), delimiter=',', namedtuples=True)):
+        stem = Path(img.filenames.encode('utf8')).stem
+        if stem in path_to_md5:
+            found += 1
+            if path_to_md5[stem] in uploaded:
+                m = ref_pattern.search(stem)
+                uploaded_ += 1
+                yield FFImage(Path(files[path_to_md5[stem]][0].encode('utf8')).name, None, m.group('ref') if m else None, None, [], uploaded[path_to_md5[stem]])
+        else:
+            #print(img.filenames)
+            print(('http://dogonlanguages.org/%s%s' % (img.files, img.filenames)).encode('utf8'))
+            missed += 1
+
+    for md5, paths in load(args.data_file('repos', 'videos_from_website.json')).items():
+        if md5 in uploaded:
+            path = Path(paths[0].encode('utf8'))
+            m = ref_pattern.search(path.stem)
+            uploaded_ += 1
+            yield FFImage(path.name, None, m.group('ref') if m else None, None, [], uploaded[md5])
+        else:
+            missed += 1
+
+    print(missed, uploaded_)
+
+
+@attr.s
 class VillageImage(object):
     name = attr.ib()
     description = attr.ib()
@@ -349,7 +376,9 @@ def parse_deg(s):
                 deg, min = comps[0], '.'.join(comps[1:])
                 return float(deg) + (float(min) / 60)
             else:
-                assert s == 'see Ogourou'
+                if s not in ['0', 'see Ogourou']:
+                    print(s)
+                    raise ValueError
             return
 
 
@@ -509,10 +538,27 @@ def gps(args):
         'boudoufoliii': 'boudoufoli_section2',
     }
 
+    def location(d):
+        if d['OfficialVillageName'] == 'Balaguina (Balaguina-Baboye)':
+            d['N Lat'] = d['N Lat'].replace(' 115.3', ' 15.3')
+        if d['OfficialVillageName'] == 'Daidourou':
+            return None, None
+        #if d['W Lon us'] and d['N Lat us']:
+        #    return parse_deg(d['N Lat us']), parse_deg(d['W Lon us'])
+        lat, lon = parse_deg(d['N Lat']), parse_deg(d['W Lon'])
+        if lon:
+            lon = -lon
+        if lon and lon < -10:
+            lon += 10
+        return lat, lon
+
     for d in reader(
-            args.data_file('repos', 'GPS_Dogon_spreadsheet_for_LLMAP.csv'), dicts=True):
+            args.data_file('repos', 'GPS_Dogon.csv'), dicts=True):
+            #args.data_file('repos', 'GPS_Dogon_spreadsheet_for_LLMAP.csv'), dicts=True):
         for k in d:
             d[k] = d[k].strip()
+        if not d['OfficialVillageName']:
+            continue
         normname = full_name_map.get(d['OfficialVillageName'].strip())
         if normname is None:
             normname = d['OfficialVillageName'].replace('-', '').replace(' ', '').replace('(', '_aka_').replace(')', '').split(',')[0].strip().lower()
@@ -522,15 +568,7 @@ def gps(args):
             normname,
             GPS_LANGS.get(d['Language (group)']),
             data=d)
-
-        if v.name != 'Daidourou':
-            v.lat, v.lon = parse_deg(d['N Lat_2']), parse_deg(d['W Lon_2'])
-            if v.lon:
-                v.lon = -v.lon
-            if v.lon and v.lon < -10:
-                v.lon += 10
-        else:
-            v.lat, v.lon = None, None
+        v.lat, v.lon = location(d)
         yield v
 
 

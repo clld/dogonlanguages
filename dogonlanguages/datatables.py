@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from sqlalchemy.orm import joinedload_all, joinedload
 
 from clld.web.datatables.value import Values
@@ -29,15 +30,25 @@ class ProjectMembers(Contributors):
         ]
 
 
-class ThumbnailCol(Col):
-    __kw__ = dict(bSearchable=False, bSortable=False)
+class VideosCol(Col):
+    __kw__ = {'input_size': 'mini'}
 
     def format(self, item):
         item = self.get_obj(item)
-        if item.thumbnail:
-            return HTML.img(class_='img-rounded', src=self.dt.req.file_url(item.thumbnail))
-        if item.video:
-            return icon('film')
+        if item.count_videos:
+            return HTML.span(
+                '%s' % item.count_videos, icon('film', inverted=True), class_='badge')
+        return ''
+
+
+class ImagesCol(Col):
+    __kw__ = {'input_size': 'mini'}
+
+    def format(self, item):
+        item = self.get_obj(item)
+        if item.count_images:
+            return HTML.span(
+                '%s' % item.count_images, icon('camera', inverted=True), class_='badge')
         return ''
 
 
@@ -49,7 +60,8 @@ class Concepts(Parameters):
         return [
             Col(self, 'ID', model_col=common.Parameter.id),
             LinkCol(self, 'gloss', model_col=common.Parameter.name),
-            ThumbnailCol(self, 'thumbnail'),
+            ImagesCol(self, 'images', model_col=models.Concept.count_images),
+            VideosCol(self, 'videos', model_col=models.Concept.count_videos),
             Col(self, 'domain',
                 choices=get_distinct_values(models.Domain.name),
                 get_object=lambda i: i.subdomain.domain,
@@ -62,6 +74,18 @@ class Concepts(Parameters):
 
 
 class Words(Values):
+    def __init__(self, req, model, **kw):
+        Values.__init__(self, req, model, **kw)
+        self.ff = False
+        if kw.get('ff') or 'ff' in req.params:
+            self.ff = True
+
+    def xhr_query(self):
+        res = Values.xhr_query(self)
+        if self.ff:
+            res['ff'] = 1
+        return res
+
     def base_query(self, query):
         query = query.join(common.ValueSet)
 
@@ -73,8 +97,9 @@ class Words(Values):
             query = query.join(common.ValueSet.language)
             return query.filter(common.ValueSet.parameter_pk == self.parameter.pk)
 
-        return query\
+        query = query\
             .join(common.Parameter)\
+            .join(common.Language)\
             .join(models.Subdomain)\
             .join(models.Domain)\
             .options(
@@ -82,8 +107,12 @@ class Words(Values):
                     common.Value.valueset,
                     common.ValueSet.parameter,
                     models.Concept.subdomain,
-                    models.Subdomain.domain)
+                    models.Subdomain.domain),
+                joinedload(common.Value.valueset, common.ValueSet.language)
             )
+        if self.ff:
+            query = query.filter(models.Domain.name.in_(['flora', 'fauna']))
+        return query
 
     def col_defs(self):
         if self.language:
@@ -112,11 +141,15 @@ class Words(Values):
             LinkCol(
                 self, 'language',
                 get_object=lambda item: item.valueset.language,
-                bSortable=False, bSearchable=False),
+                model_col=common.Language.name),
             LinkCol(
                 self, 'concept',
                 get_object=lambda item: item.valueset.parameter,
                 model_col=common.Parameter.name),
+            ImagesCol(
+                self, '#',
+                get_object=lambda i: i.valueset.parameter,
+                model_col=models.Concept.count_images),
             Col(self, 'domain',
                 get_object=lambda item: item.valueset.parameter.subdomain.domain,
                 model_col=models.Domain.name),
