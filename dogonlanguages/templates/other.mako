@@ -16,29 +16,19 @@
 
 <table>
 <tr>
-<th>current name</th>
-<th>synonyms</th>
+<th>Current name</th>
+<th>Synonyms</th>
 <th>ISO code</th>
 <th>Glottolog code</th>
 </tr>
-<tr>
-<td>Tiéyaxo	Tigemaxo</td>
-<td>Tiema Cewe	Tiɛma Cɛwɛ</td>
-<td>Kelenga	Hainyaxo</td>
-<td>Jenaama	Sorogaana</td>
-</tr>
-<tr>
-<td>boz</td>
-<td>boo</td>
-<td>bsx</td>
-<td>bze</td>
-</tr>
-<tr>
-<td>tiey1235</td>
-<td>tiem1235</td>
-<td>hain1253</td>
-<td>jena1242</td>
-</tr>
+
+% for row in [["Tieyaxo", "Tigemaxo", "boz", "tiey1235"],["Tiema Cewe", "Tiema Ce", "boo", "tiem1235"],["Kelenga", "Hainyaxo", "bsx", "hain1253"],["Jenaama", "Sorogaana", "bze", "jena1242"]]:
+	<tr>
+	% for item in row:
+		<td>${item}</td>
+	% endfor
+		</tr>
+% endfor
 </table>
 
 <p>The Bozo (except some Jenaama) are the classic fishing people of the Niger and Bani rivers in Mali. They specialize in hunting fish and either selling them fresh or smoking and drying them for sale throughout the year. Ethnic Bozo fishing people, whether they speak a Bozo language or have been linguistically assimilated (usually to Songhay), are called Sorko.</p>
