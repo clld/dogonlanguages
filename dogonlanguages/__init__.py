@@ -10,6 +10,11 @@ from dogonlanguages.interfaces import IVillage, IFile
 from dogonlanguages import views
 
 
+_ = lambda s: s
+_('Parameters')
+_('Sources')
+
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -34,6 +39,7 @@ def main(global_config, **settings):
         ('sources', partial(menu_item, 'sources', label='Bibliography')),
         ('bangime', partial(menu_item, 'bangime', label='Bangime')),
         ('other', partial(menu_item, 'other', label='Other Languages')),
+        ('files', partial(menu_item, 'files', label='Files')),
     )
     config.register_resource('village', models.Village, IVillage, with_index=True)
     config.register_resource('file', models.File, IFile, with_index=True)

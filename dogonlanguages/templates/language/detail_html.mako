@@ -36,5 +36,10 @@ $(document).ready(function() {
 </div>
 
 <%def name="sidebar()">
-    ${util.language_meta()}
+    ${util.codes()}
+    <div style="clear: right;"> </div>
+    <%util:well>
+        ${request.map.render()}
+        ${h.format_coordinates(ctx)}
+    </%util:well>
 </%def>

@@ -16,7 +16,7 @@ from clldutils.jsonlib import load
 
 from clld.lib.bibtex import Record, Database, unescape
 
-from dogonlanguages.scripts.data import GPS_LANGS
+from dogonlanguages.scripts.data import GPS_LANGS, FIELD_MAP, LEX_LANGS
 
 
 @attr.s
@@ -183,10 +183,7 @@ def get_bib(args):
             for path in paths:
                 fname_to_cdstar[path.split('/')[-1]] = uploaded[hash_]
     db = Database.from_file(args.data_file('repos', 'Dogon.bib'), lowercase=True)
-    keys = defaultdict(int)
     for rec in db:
-        keys[rec.id] += 1
-        rec.id = '%sx%s' % (rec.id, keys[rec.id])
         doc = Document(rec)
         newurls = []
         for url in rec.get('url', '').split(';'):
@@ -277,81 +274,17 @@ class Entry(object):
     def __init__(self, **kw):
         for k, v in kw.items():
             setattr(self, k, v)
+        self.forms = {}
 
 
-def ff_to_standard(d):
-    kw = {}
-    for k, v in FIELD_MAP.items():
-        if v:
-            kw[v] = d.get(k)
-    return Entry(**kw)
-
-
-FIELD_MAP = {
-    "code (Eng)": "code_eng",
-    "subcode (Eng)": "subcode_eng",
-    "code (fr)": "code_fr",
-    "sous-code (fr)": "sous_code_fr",
-    "code #": "code",
-    "subcode #": "subcode",
-    "order": "subsubcode",
-    "short": "short",
-    "court": "court",
-    "ref#": "ref",
-    "jpg": "jpg",
-    "video": "video",
-    "date": "date",
-    "comment": "comment",
-    "English": "English",
-    "français": "Francais",
-    "core": "core",
-
-    "Toro Tegu (Toupere, JH)": "Toro_Tegu",
-    "Ben Tey (Beni, JH)": "Ben_Tey",
-    "Bankan-Tey (Walo, JH)": "Bankan_Tey",
-    "Nanga (Anda, JH)": "Nanga",
-    "Jamsay (alphabet)": "Jamsay_Alphabet",
-    "Jamsay (Douentza area, JH)": "Jamsay",
-    "Perge Tegu (Pergué, JH)": "Perge_Tegu",
-    "Gourou (Kiri, JH)": "Gourou",
-    "Jamsay (Mondoro, JH)": "Jamsay_Mondoro",
-    "Togo-Kan (Koporo-pen, JH with BT)": "Togo_Kan",
-    "Yorno-So (Yendouma, JH and DT)": "Yorno_So",
-    "Ibi-So (JH)": "",
-    "Donno-So": "",
-    "Tomo Kan (Segue)": "Tomo_Kan",
-    "Tomo Kan (Diangassagou)": "Tomo_Kan_Diangassagou",
-    "Tommo So (Tongo Tongo, combined)": "Tommo_So",
-    "Tommo So (Tongo Tongo, JH)": "",
-
-    "Tommo-So (Tongo Tongo, LM)": "",
-    "Dogul Dom (Bendiely, BC)": "Dogul_Dom",
-    "Tebul Ure (JH)": "Tebul_Ure",
-    "Yanda Dom (Yanda, JH)": "Yanda_Dom",
-    "Najamba (Kubewel-Adia, JH)": "Najamba",
-    "Tiranige (Boui, JH)": "Tiranige",
-    "Mombo JH": "Mombo",
-    "Mombo (Songho, KP)": "",
-    "Ampari (Nando, JH)": "Ampari",
-    "Ampari (Nando, KP)": "",
-    "Bunoge (Boudou)": "Bunoge",
-    "Penange (Pinia)": "Penange",
-
-    "Bangime (Bounou, JH)": "",
-    "Bangime (Bounou, AH)": "",
-
-    "HS Songhay": "",
-    "TSK Songhay": "",
-    "species": "species",
-    "family": "family",
-}
-"""
-    book p.,
-    synonymy,
-    comment,
-    domain,
-    specimen
-"""
+def iter_lexicon(args):
+    for fname in ['dogon_lexicon', 'flora_Dogon_Unicode', 'fauna_Dogon_Unicode']:
+        for concept in reader(args.data_file('repos', fname + '.csv'), dicts=True):
+            entry = Entry(**{v: concept.get(k) for k, v in FIELD_MAP.items()})
+            for name, gc in LEX_LANGS[fname].items():
+                entry.forms[gc] = concept[name].strip()
+            if entry.ref and entry.ref != 'zzz':
+                yield entry
 
 
 @attr.s

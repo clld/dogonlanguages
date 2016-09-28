@@ -55,6 +55,16 @@ class ImagesCol(Col):
         return ''
 
 
+class TsammalexCol(Col):
+    def format(self, item):
+        return util.tsammalex_link(self.dt.req, item)
+
+
+class ConcepticonCol(Col):
+    def format(self, item):
+        return util.concepticon_link(self.dt.req, item)
+
+
 class Concepts(Parameters):
     def base_query(self, query):
         return query.join(models.Subdomain).join(models.Domain)
@@ -63,8 +73,6 @@ class Concepts(Parameters):
         return [
             Col(self, 'ID', model_col=common.Parameter.id),
             LinkCol(self, 'gloss', model_col=common.Parameter.name),
-            ImagesCol(self, 'images', model_col=models.Concept.count_images),
-            VideosCol(self, 'videos', model_col=models.Concept.count_videos),
             Col(self, 'domain',
                 choices=get_distinct_values(models.Domain.name),
                 get_object=lambda i: i.subdomain.domain,
@@ -72,7 +80,17 @@ class Concepts(Parameters):
             Col(self, 'subdomain',
                 choices=get_distinct_values(models.Subdomain.name),
                 get_object=lambda i: i.subdomain,
-                model_col=models.Subdomain.name)
+                model_col=models.Subdomain.name),
+            ConcepticonCol(
+                self, 'concepticon',
+                input_size='mini',
+                model_col=models.Concept.concepticon_id),
+            TsammalexCol(
+                self, 'tsammalex',
+                input_size='mini',
+                model_col=models.Concept.tsammalex_taxon),
+            ImagesCol(self, 'images', model_col=models.Concept.count_images),
+            VideosCol(self, 'videos', model_col=models.Concept.count_videos),
         ]
 
 
@@ -232,9 +250,13 @@ class Documents(Sources):
             DetailsRowLinkCol(self, 'd'),
             LinkCol(self, 'name'),
             Col(self, 'description', sTitle='Title'),
-            Col(self, 'year'),
+            Col(self, 'year', input_size='mini'),
             Col(self, 'author'),
-            Col(self, 'DLP', model_col=models.Document.project_doc),
+            Col(self, 'DLP', sTitle='DLP', model_col=models.Document.project_doc),
+            Col(self, 'type',
+                input_size='mini',
+                model_col=models.Document.doctype,
+                choices=get_distinct_values(models.Document.doctype)),
             DocumentCol(self, '#'),
             TypeCol(self, 'bibtex_type'),
         ]
@@ -260,12 +282,12 @@ class Files(DataTable):
     def col_defs(self):
         return [
             Col(self, 'name', format=wrap_fname),
-            ViewCol(self, '#'),
+            ViewCol(self, 'view'),
             Col(self, 'size', format=lambda i: util.format_size(i)),
-            Col(self, 'mime_type', choices=get_distinct_values(models.File.mime_type)),
-            Col(self, 'date'),
+            Col(self, 'mime_type', sTitle='media type', choices=get_distinct_values(models.File.mime_type)),
+            Col(self, 'date', model_col=models.File.date_created, bSearchable=False),
             # TODO: link to download!
-            Col(self, 'id'),
+            Col(self, 'id', sTitle='MD5 checksum'),
         ]
 
 

@@ -2,9 +2,34 @@ from __future__ import unicode_literals
 from math import floor
 
 from six import text_type
+from clld.db.models.common import Source
 from clld.web.util.htmllib import HTML
 from clld.web.util.helpers import icon
 from clldutils import misc
+
+
+def tsammalex_link(request, concept):
+    if not concept.tsammalex_taxon:
+        return ''
+    return HTML.a(
+        HTML.img(
+            src=request.static_url('dogonlanguages:static/tsamma.png'),
+            height=20,
+            width=30),
+        title='corresponding taxon at Tsammalex',
+        href=concept.tsammalex_url)
+
+
+def concepticon_link(request, concept):
+    if not concept.concepticon_id:
+        return ''
+    return HTML.a(
+        HTML.img(
+            src=request.static_url('dogonlanguages:static/concepticon_logo.png'),
+            height=20,
+            width=30),
+        title='corresponding concept set at Concepticon',
+        href=concept.concepticon_url)
 
 
 def eol_link(req, species):
@@ -64,3 +89,11 @@ def format_coordinates(obj):
     if getattr(obj, 'source_of_coordinates', None):
         lines.append('source: %s' % obj.source_of_coordinates)
     return ' '.join(lines)
+
+
+def value_index_html(context=None, request=None, **kw):
+    ids = 'heathetal2015 floradogonunicode faunadogonunicode'.split()
+    return {
+        'spreadsheets': [Source.get(sid) for sid in ids],
+        'heathmcpherson2009actionverbs': Source.get('heathmcpherson2009actionverbs')
+    }

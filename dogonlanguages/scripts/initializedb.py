@@ -10,7 +10,7 @@ from clldutils.misc import slug, nfilter
 from clldutils.path import Path
 from clldutils import jsonlib
 
-from clld.scripts.util import initializedb, Data, bibtex2source
+from clld.scripts.util import initializedb, Data, bibtex2source, add_language_codes
 from clld.db.meta import DBSession
 from clld.db.models import common
 try:
@@ -21,13 +21,14 @@ except ImportError:
 import dogonlanguages
 from dogonlanguages import models
 from dogonlanguages.scripts import util
-from dogonlanguages.scripts.data import LANGUAGES, LEX_LANGS
+from dogonlanguages.scripts.data import LANGUAGES
 
 
 def main(args):
     for f in util.iter_files(args):
         DBSession.add(models.File(**attr.asdict(f)))
 
+    lexicon = list(util.iter_lexicon(args))
     villages = util.get_villages(args)
     ff_images = list(util.ff_images(args))
     bib = list(util.get_bib(args))
@@ -74,7 +75,12 @@ def main(args):
             models.Document,
             doc.rec.id,
             _obj=bibtex2source(doc.rec, cls=models.Document))
-        obj.project_doc = (doc.rec.get('keywords') == 'DLP') or bool(doc.files)
+        keywords = nfilter([s.strip() for s in doc.rec.get('keywords', '').split(',')])
+        for dt in 'grammar lexicon typology texts'.split():
+            if dt in keywords:
+                obj.doctype = dt
+                break
+        obj.project_doc = ('DLP' in keywords) or bool(doc.files)
         if obj.project_doc:
             for i, cid in enumerate(util.get_contributors(doc.rec, data)):
                 models.DocumentContributor(
@@ -93,7 +99,7 @@ def main(args):
     for name, (gc, desc) in LANGUAGES.items():
         gl_lang = languoids[gc]
         lat, lon = gl_lang.latitude, gl_lang.longitude
-        data.add(
+        lang = data.add(
             models.Languoid, gc,
             id=gc,
             name=name,
@@ -102,6 +108,15 @@ def main(args):
             longitude=lon,
             family=gl_lang.family.name if gl_lang and gl_lang.family else name,
         )
+        if name == 'Penange' and lang.longitude > 0:
+            lang.longitude = -lang.longitude
+        if name == 'Bankan Tey':
+            lang.latitude, lang.longitude = 15.07, -2.91
+        if name == 'Ben Tey':
+            lang.latitude, lang.longitude = 14.85, -2.95
+        if name == 'Togo Kan':
+            lang.latitude, lang.longitude = 14.00, -3.25
+        add_language_codes(data, lang, gl_lang.iso, glottocode=gc)
 
     contrib_by_initial = {c.abbr: c for c in data['Member'].values()}
     for i, village in enumerate(villages):
@@ -150,13 +165,7 @@ def main(args):
                             foto=f, contributor=contrib_by_initial[initial])
 
     names = defaultdict(int)
-    for concept in reader(args.data_file('repos', 'flora_Dogon_Unicode.csv'), delimiter=',', dicts=True):
-        add(util.ff_to_standard(concept), data, names, contrib, ff=True)
-
-    for concept in reader(args.data_file('repos', 'fauna_Dogon_Unicode.csv'), delimiter=',', dicts=True):
-        add(util.ff_to_standard(concept), data, names, contrib, ff=True)
-
-    for concept in reader(args.data_file('repos', 'dogon_lexicon.csv'), delimiter=',', escapechar='\\', namedtuples=True):
+    for concept in lexicon:
         add(concept, data, names, contrib)
 
     count = set()
@@ -180,7 +189,7 @@ def main(args):
                 print('missing ref: %s' % img.ref)
 
 
-def add(concept, data, names, contrib, ff=False):
+def add(concept, data, names, contrib):
     domain = data['Domain'].get(concept.code)
     if domain is None:
         domain = data.add(
@@ -191,16 +200,12 @@ def add(concept, data, names, contrib, ff=False):
     scid = '-'.join([concept.code, concept.subcode.replace('.', '_')])
     subdomain = data['Subdomain'].get(scid)
     if subdomain is None:
-        try:
-            subdomain = data.add(
-                models.Subdomain, scid,
-                id=scid,
-                name=concept.subcode_eng,
-                description=concept.sous_code_fr,
-                domain=domain)
-        except:
-            print scid, concept.English
-            return
+        subdomain = data.add(
+            models.Subdomain, scid,
+            id=scid,
+            name=concept.subcode_eng,
+            description=concept.sous_code_fr,
+            domain=domain)
 
     cid = '%05d' % int(concept.ref)
     if concept.English in names:
@@ -216,33 +221,32 @@ def add(concept, data, names, contrib, ff=False):
             core=concept.core == '1',
             id=cid,
             name=name,
-            ff=ff,
             description=concept.Francais,
-            subdomain=subdomain)
-        if ff:
+            subdomain=subdomain,
+            jsondata=dict(ref='%s-%s-%s' % (concept.code, concept.subcode, concept.subsubcode)))
+        if concept.species:
             c.species = concept.species
+        if concept.family:
             c.family = concept.family
     else:
         assert cid == '50325'
 
-    for i, (l, gc) in enumerate(LEX_LANGS):
+    for gc, forms in concept.forms.items():
         lang = data['Languoid'].get(gc)
         assert lang
-        forms = (getattr(concept, l) or '').strip()
         if not forms:
             continue
 
-        # FIXME: distinguish varieties as contributions!?
         vs = common.ValueSet(
-            id='-'.join([cid, str(i + 1)]),
+            id='-'.join([cid, gc]),
             language=lang,
             contribution=contrib,
             parameter=c)
         for j, form in enumerate(nfilter(util.split_words(forms))):
             attrs = util.parse_form(form)
             if attrs['name'] and attrs['name'] != 'xxx':
-                v = models.Counterpart(
-                    id='-'.join([cid, str(i + 1), str(j + 1)]),
+                models.Counterpart(
+                    id='-'.join([vs.id, str(j + 1)]),
                     valueset=vs,
                     **util.parse_form(form))
 
@@ -252,12 +256,18 @@ def prime_cache(args):
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
     """
+    concepticon = {
+        c.GLOSS: c.CONCEPTICON_ID for c in
+        reader(args.data_file('repos', 'conceptlist.tsv'), delimiter='\t', namedtuples=True)
+        if c.CONCEPTICON_ID}
     sdata = jsonlib.load(args.data_file('repos', 'classification.json'))
     for concept in DBSession.query(models.Concept).options(joinedload(common.Parameter._files)):
         for t_ in ['image', 'video']:
             setattr(concept, 'count_{0}s'.format(t_), len(getattr(concept, t_ + 's')))
-        if concept.id in sdata:
-            util.update_species_data(concept, sdata[concept.id])
+        if concept.jsondata['ref'] in sdata:
+            util.update_species_data(concept, sdata[concept.jsondata['ref']])
+        if concept.name in concepticon:
+            concept.concepticon_id = int(concepticon[concept.name])
 
 
 if __name__ == '__main__':

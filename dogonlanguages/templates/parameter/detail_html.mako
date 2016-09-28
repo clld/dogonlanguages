@@ -5,17 +5,40 @@
 <% images = [f for f in ctx._files if f.mime_type.startswith('image')] %>
 <% videos = [f for f in ctx._files if f.mime_type.startswith('video')] %>
 
-% if ctx.tsammalex_taxon:
+% if ctx.tsammalex_taxon or ctx.family:
     <ul class="breadcrumb">
-        ##% for name in reversed(ctx.family.split(',')):
-        ##    <li class="active">${name.strip()}</li> <span class="divider">/</span>
-        ##% endfor
-        ##<li class="active">${ctx.species} ${u.eol_link(request, ctx)}</li>
+        % if ctx.family:
+            % for name in reversed(ctx.family.split(',')):
+                <li class="active">${name.strip()}</li> <span class="divider">/</span>
+            % endfor
+            <li class="active">${ctx.species} ${u.eol_link(request, ctx)}</li>
+        % endif
         % if ctx.tsammalex_taxon:
             <li class="active">${h.external_link('http://tsammalex.clld.org/parameters/' + ctx.tsammalex_taxon, 'Tsammalex')}</li>
         % endif
     </ul>
 % endif
+
+<ul class="inline codes pull-right">
+    % if ctx.tsammalex_taxon:
+        <li>
+            <a href="${ctx.tsammalex_url}">
+                <span class="large label label-info">
+                    Tsammalex: ${ctx.tsammalex_taxon}
+                </span>
+            </a>
+        </li>
+    % endif
+    % if ctx.concepticon_id:
+        <li>
+            <a href="${ctx.concepticon_url}">
+                <span class="large label label-info">
+                    Concepticon: ${ctx.concepticon_id}
+                </span>
+            </a>
+        </li>
+    % endif
+</ul>
 
 <h2>${ctx.name}</h2>
 

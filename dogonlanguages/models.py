@@ -59,10 +59,10 @@ class Concept(CustomModelMixin, Parameter):
     subdomain_pk = Column(Integer, ForeignKey('subdomain.pk'))
     subdomain = relationship(Subdomain, backref='concepts')
 
-    ff = Column(Boolean, default=False)
     species = Column(Unicode)
     family = Column(Unicode)
     tsammalex_taxon = Column(Unicode)
+    concepticon_id = Column(Integer)
 
     count_videos = Column(Integer, default=0)
     count_images = Column(Integer, default=0)
@@ -80,6 +80,16 @@ class Concept(CustomModelMixin, Parameter):
         eol_id = self.jsondata.get('eol_id')
         if eol_id:
             return 'http://eol.org/%s' % eol_id
+
+    @property
+    def concepticon_url(self):
+        if self.concepticon_id:
+            return 'http://concepticon.clld.org/parameters/%s' % self.concepticon_id
+
+    @property
+    def tsammalex_url(self):
+        if self.tsammalex_taxon:
+            return 'http://tsammalex.clld.org/parameters/%s' % self.tsammalex_taxon
 
 
 @implementer(interfaces.IValue)
@@ -99,7 +109,7 @@ class Document(CustomModelMixin, Source):
 
     # project docs will have an associated file!
     project_doc = Column(Boolean)
-
+    doctype = Column(Unicode)
     contributors = association_proxy('contributor_assocs', 'contributor')
 
 

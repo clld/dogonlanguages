@@ -6,11 +6,11 @@ from clldutils.misc import slug
 
 def bangime(req):
     docs = {
-        'memorial': 'eldersmemorialcall07x1',
-        'bangerimevocabulaire': 'bangerimevocabulairex1',
-        'bangerimephrases': 'bangerimephrasesx1',
-        'bangerimepres': 'elders2006x1',
-        'blacksmith': 'blacksmithvocabularyx1',
+        'memorial': 'eldersmemorialcall07',
+        'bangerimevocabulaire': 'bangerimevocabulaire',
+        'bangerimephrases': 'bangerimephrases',
+        'bangerimepres': 'elders2006',
+        'blacksmith': 'blacksmithvocabulary',
     }
     return {
         'docs': {k: Source.get(sid) for k, sid in docs.items()}
@@ -27,5 +27,19 @@ def florafauna(req):
         'bird_notes_Mali_JH',
     ]
     return {
-        'notes': [Source.get(slug(sid) + 'x1') for sid in note_ids]
+        'notes': [Source.get(slug(sid)) for sid in note_ids]
+    }
+
+
+def other(req):
+    jenaama = 'Heath2016-Jenaama-lexicon Heath2016-JenaamaBozo'.split()
+    rows = [
+        ["Tieyaxo", "Tigemaxo", "boz", "tiey1235"],
+        ["Tiema Cewe", "Tiema Ce", "boo", "tiem1235"],
+        ["Kelenga", "Hainyaxo", "bsx", "hain1253"],
+        ["Jenaama", "Sorogaana", "bze", "jena1242"],
+    ]
+    return {
+        'rows': rows,
+        'jenaama': [Source.get(slug(sid)) for sid in jenaama]
     }

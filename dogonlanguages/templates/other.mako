@@ -14,21 +14,24 @@
 
 <p>Four Bozo languages are currently recognized:</p>
 
-<table>
+<table class="table table-nonfluid">
+<thead>
 <tr>
-<th>Current name</th>
-<th>Synonyms</th>
-<th>ISO code</th>
-<th>Glottolog code</th>
+    <th>Current name</th>
+    <th>Synonyms</th>
+    <th>ISO code</th>
+    <th>Glottolog code</th>
 </tr>
-
-% for row in [["Tieyaxo", "Tigemaxo", "boz", "tiey1235"],["Tiema Cewe", "Tiema Ce", "boo", "tiem1235"],["Kelenga", "Hainyaxo", "bsx", "hain1253"],["Jenaama", "Sorogaana", "bze", "jena1242"]]:
-	<tr>
-	% for item in row:
-		<td>${item}</td>
-	% endfor
-		</tr>
-% endfor
+</thead>
+<tbody>
+    % for row in rows:
+        <tr>
+            % for item in row:
+                <td>${item}</td>
+            % endfor
+        </tr>
+    % endfor
+</tbody>
 </table>
 
 <p>The Bozo (except some Jenaama) are the classic fishing people of the Niger and Bani rivers in Mali. They specialize in hunting fish and either selling them fresh or smoking and drying them for sale throughout the year. Ethnic Bozo fishing people, whether they speak a Bozo language or have been linguistically assimilated (usually to Songhay), are called Sorko.</p>
@@ -51,8 +54,11 @@
 <p>Click on the links below for drafts of future grammar sections (docx format), and an initial vocabulary spreadsheet (xlxs), based on the first week of fieldwork.</p>
 
 <ul>
-<li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/JH_Jenaama_grammar_fragments_July%202016.docx', label='JH_Jenaama_grammar_fragments_July 2016.docx')}</li>
-<li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/JH_Jenaama_lexicon_minus_verbs.xlsx', label='JH_Jenaama_lexicon_minus_verbs.xlsx')}</li>
+    % for doc in jenaama:
+        <li>
+            ${h.link(request, doc, label=doc.title)}
+        </li>
+    % endfor
 </ul>
 
 <p>Heath plans to work on Jenaama for a few weeks around Christmas school vacation 2016-17, and hopes to do systematic fieldwork on Jenaama and its dialects in the next few years. The grammar fragments and the lexicon will be periodically updated on this page. </p>
