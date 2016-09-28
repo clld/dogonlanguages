@@ -21,7 +21,7 @@ from clld.db.models.common import (
     FilesMixin, HasFilesMixin,
 )
 
-from dogonlanguages.interfaces import IVillage
+from dogonlanguages.interfaces import IVillage, IFile
 
 
 class Domain(Base, IdNameDescriptionMixin):
@@ -62,6 +62,7 @@ class Concept(CustomModelMixin, Parameter):
     ff = Column(Boolean, default=False)
     species = Column(Unicode)
     family = Column(Unicode)
+    tsammalex_taxon = Column(Unicode)
 
     count_videos = Column(Integer, default=0)
     count_images = Column(Integer, default=0)
@@ -136,6 +137,15 @@ class Village(Base, IdNameDescriptionMixin, HasFilesMixin, LatLonMixin):
     major_city = Column(Boolean)
     transcribed_name = Column(Unicode)
     source_of_coordinates = Column(Unicode)
+
+
+@implementer(IFile)
+class File(Base, IdNameDescriptionMixin):
+    # id: md5 checksum
+    # name: filename
+    size = Column(Integer)
+    date_created = Column(Date)
+    mime_type = Column(Unicode)
 
 
 class Fotographer(Base):

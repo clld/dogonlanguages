@@ -1,4 +1,6 @@
 from __future__ import unicode_literals
+from textwrap import wrap
+
 from sqlalchemy.orm import joinedload_all, joinedload
 
 from clld.web.datatables.value import Values
@@ -14,6 +16,7 @@ from clld.db.models import common
 from clld.db.util import get_distinct_values
 
 from dogonlanguages import models
+from dogonlanguages import util
 
 
 class DogonLanguages(Languages):
@@ -237,10 +240,40 @@ class Documents(Sources):
         ]
 
 
+class ViewCol(Col):
+    __kw__ = dict(bSearchable=False, bSortable=False)
+
+    def format(self, item):
+        return HTML.a(
+            icon('eye-open'),
+            href=util.cdstar_url(item),
+            title='view',
+            class_="btn")
+
+
+def wrap_fname(i):
+    return '_ ... _'.join(
+        s.replace(' ', '_') for s in wrap(i.name.replace('_', ' '), width=60))
+
+
+class Files(DataTable):
+    def col_defs(self):
+        return [
+            Col(self, 'name', format=wrap_fname),
+            ViewCol(self, '#'),
+            Col(self, 'size', format=lambda i: util.format_size(i)),
+            Col(self, 'mime_type', choices=get_distinct_values(models.File.mime_type)),
+            Col(self, 'date'),
+            # TODO: link to download!
+            Col(self, 'id'),
+        ]
+
+
 def includeme(config):
     config.register_datatable('contributors', ProjectMembers)
     config.register_datatable('languages', DogonLanguages)
     config.register_datatable('parameters', Concepts)
     config.register_datatable('values', Words)
     config.register_datatable('villages', Villages)
+    config.register_datatable('files', Files)
     config.register_datatable('sources', Documents)

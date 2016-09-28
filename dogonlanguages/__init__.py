@@ -6,7 +6,7 @@ from clld.web.app import menu_item
 
 # we must make sure custom models are known at database initialization!
 from dogonlanguages import models
-from dogonlanguages.interfaces import IVillage
+from dogonlanguages.interfaces import IVillage, IFile
 from dogonlanguages import views
 
 
@@ -36,7 +36,7 @@ def main(global_config, **settings):
         ('other', partial(menu_item, 'other', label='Other Languages')),
     )
     config.register_resource('village', models.Village, IVillage, with_index=True)
-    # must register snippet adapter for villages!
+    config.register_resource('file', models.File, IFile, with_index=True)
 
     config.add_page('bangime')
     config.add_page('florafauna')

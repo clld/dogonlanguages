@@ -3,6 +3,8 @@ from __future__ import unicode_literals, print_function
 import re
 from hashlib import md5
 from collections import defaultdict
+from mimetypes import guess_type
+from datetime import date
 
 from purl import URL
 import attr
@@ -15,6 +17,59 @@ from clldutils.jsonlib import load
 from clld.lib.bibtex import Record, Database, unescape
 
 from dogonlanguages.scripts.data import GPS_LANGS
+
+
+@attr.s
+class File(object):
+    id = attr.ib()
+    name = attr.ib()
+    mime_type = attr.ib()
+    date_created = attr.ib()
+    size = attr.ib()
+    jsondata = attr.ib()
+
+
+date_p = re.compile('_(?P<m>(0|1)[0-9])_((?P<d>[0-3][0-9])_)?(?P<y>(1|2)[0-9]{3})_')
+
+
+def iter_files(args):
+    files = defaultdict(list)
+    for n in """
+        Burkina_flora_for_website.json
+        data.json
+        docs.json
+        edmond.json
+        ffmissing.json
+        Heath_flora_fauna_images.json
+        Mali_villages_with_coordinates_for_website.json
+        texts.json
+        videos_from_website.json
+    """.split():
+        files.update(load(args.data_file('repos', n)))
+    missing, matched = 0, 0
+    for md5, cdstar in load(args.data_file('repos', 'cdstar.json')).items():
+        if md5 in files:
+            fnames = [Path(p.encode('utf8')).name.decode('utf8') for p in files[md5]]
+            fname = sorted(fnames, key=lambda n: len(n))[-1]
+            fname = fname.replace(' ', '_')
+            if fname == 'Thumbs.db':
+                continue
+            m = date_p.search(fname)
+            if m:
+                d = date(int(m.group('y')), int(m.group('m')), int(m.group('d') or 1))
+            else:
+                d = None
+            yield File(
+                md5,
+                fname,
+                guess_type(fname)[0].decode('utf8'),
+                d,
+                cdstar['size'],
+                cdstar)
+            matched += 1
+        else:
+            missing += 1
+    print(missing, matched)
 
 
 def get_contributors(rec, data):
@@ -301,15 +356,21 @@ FIELD_MAP = {
 
 @attr.s
 class FFImage(object):
+    id = attr.ib()
     name = attr.ib()
     description = attr.ib()
     ref = attr.ib()
     date = attr.ib()
     creators = attr.ib()
     cdstar = attr.ib()
+    tsammalex_taxon = attr.ib()
 
 
 def ff_images(args):
+    tsammalex = {
+        i.id: i.taxa__id for i in
+        reader(args.data_file('repos', 'tsammalex_images.csv'), namedtuples=True)}
+
     ref_pattern = re.compile('(?P<ref>[0-9]{5})')
     uploaded = load(args.data_file('repos', 'cdstar.json'))
     files = load(args.data_file('repos', 'Heath_flora_fauna_images.json'))
@@ -326,7 +387,15 @@ def ff_images(args):
             if path_to_md5[stem] in uploaded:
                 m = ref_pattern.search(stem)
                 uploaded_ += 1
-                yield FFImage(Path(files[path_to_md5[stem]][0].encode('utf8')).name, None, m.group('ref') if m else None, None, [], uploaded[path_to_md5[stem]])
+                yield FFImage(
+                    path_to_md5[stem],
+                    Path(files[path_to_md5[stem]][0].encode('utf8')).name,
+                    None,
+                    m.group('ref') if m else None,
+                    None,
+                    [],
+                    uploaded[path_to_md5[stem]],
+                    tsammalex.get(path_to_md5[stem]))
         else:
             #print(img.filenames)
             print(('http://dogonlanguages.org/%s%s' % (img.files, img.filenames)).encode('utf8'))
@@ -337,7 +406,15 @@ def ff_images(args):
             path = Path(paths[0].encode('utf8'))
             m = ref_pattern.search(path.stem)
             uploaded_ += 1
-            yield FFImage(path.name, None, m.group('ref') if m else None, None, [], uploaded[md5])
+            yield FFImage(
+                md5,
+                path.name,
+                None,
+                m.group('ref') if m else None,
+                None,
+                [],
+                uploaded[md5],
+                tsammalex.get(md5))
         else:
             missed += 1
 
@@ -346,6 +423,7 @@ def ff_images(args):
 
 @attr.s
 class VillageImage(object):
+    id = attr.ib()
     name = attr.ib()
     description = attr.ib()
     date = attr.ib()
@@ -362,7 +440,7 @@ def village_images(args):
         if hash_ in uploaded:
             fname = Path(paths[0])
             name, coords, desc, date_, creators = image_md(fname.stem)
-            yield VillageImage(fname.name.decode('utf8'), desc, date_, creators, coords, uploaded[hash_])
+            yield VillageImage(hash_, fname.name.decode('utf8'), desc, date_, creators, coords, uploaded[hash_])
 
 
 def parse_deg(s):

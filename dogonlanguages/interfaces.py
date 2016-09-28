@@ -6,3 +6,8 @@ from zope.interface import Interface
 class IVillage(Interface):
 
     """marker."""
+
+
+class IFile(Interface):
+
+    """marker."""

@@ -25,18 +25,12 @@ from dogonlanguages.scripts.data import LANGUAGES, LEX_LANGS
 
 
 def main(args):
+    for f in util.iter_files(args):
+        DBSession.add(models.File(**attr.asdict(f)))
+
     villages = util.get_villages(args)
     ff_images = list(util.ff_images(args))
     bib = list(util.get_bib(args))
-
-    if Glottolog:
-        glottolog = Glottolog(
-            Path(dogonlanguages.__file__).parent.parent.parent.parent.joinpath(
-                'glottolog3', 'glottolog'))
-        languoids = {l.id: l for l in glottolog.languoids()}
-    else:
-        languoids = {}
-    print('got glottolog')
 
     files_dir = args.data_file('files')
     if not files_dir.exists():
@@ -56,6 +50,15 @@ def main(args):
             'license_name': 'Creative Commons Attribution 4.0 International License'}
     )
     DBSession.add(dataset)
+
+    if Glottolog:
+        glottolog = Glottolog(
+            Path(dogonlanguages.__file__).parent.parent.parent.parent.joinpath(
+                'glottolog3', 'glottolog'))
+        languoids = {l.id: l for l in glottolog.languoids()}
+    else:
+        languoids = {}
+    print('got glottolog')
 
     for c in util.CONTRIBUTORS:
         id_ = slug(c.name.split()[-1])
@@ -127,11 +130,11 @@ def main(args):
             languoid=lang,
             jsondata=village.data,
         )
-        for j, img in enumerate(village.images):
+        for img in village.images:
             mimetype = guess_type(img.name)[0]
             if mimetype:
                 f = models.Village_files(
-                    id='%s-%s' % (v.id, j + 1),
+                    id=img.id,
                     name=img.name,
                     description=img.description,
                     date_created=img.date,
@@ -156,21 +159,25 @@ def main(args):
     for concept in reader(args.data_file('repos', 'dogon_lexicon.csv'), delimiter=',', escapechar='\\', namedtuples=True):
         add(concept, data, names, contrib)
 
-    count = 0
-    for i, img in enumerate(ff_images):
+    count = set()
+    for img in ff_images:
+        if img.id in count:
+            continue
+        count.add(img.id)
         if img.ref:
             if img.ref in data['Concept']:
                 concept = data['Concept'][img.ref]
+                if img.tsammalex_taxon and not concept.tsammalex_taxon:
+                    concept.tsammalex_taxon = img.tsammalex_taxon
+                    #print(concept.tsammalex_taxon)
                 common.Parameter_files(
                     object=concept,
-                    id=str(i + 1),
+                    id=img.id,
                     name=img.name.decode('utf8'),
                     mime_type=guess_type(img.name)[0],
                     jsondata=img.cdstar)
-                count += 1
             else:
                 print('missing ref: %s' % img.ref)
-    print(count, 'images detected')
 
 
 def add(concept, data, names, contrib, ff=False):
