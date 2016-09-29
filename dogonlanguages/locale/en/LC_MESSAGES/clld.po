@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-09-28 16:49+0200\n"
+"POT-Creation-Date: 2016-09-29 12:23+0200\n"
 "PO-Revision-Date: 2016-09-28 12:02+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -25,4 +25,12 @@ msgstr "Thesaurus"
 #: dogonlanguages/__init__.py:15
 msgid "Sources"
 msgstr "Bibliography"
+
+#: dogonlanguages/__init__.py:16
+msgid "Contributors"
+msgstr "Project members"
+
+#: dogonlanguages/__init__.py:17
+msgid "Other"
+msgstr "Other Languages"
 

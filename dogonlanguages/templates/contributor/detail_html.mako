@@ -1,4 +1,4 @@
-<%inherit file="../${context.get('request').registry.settings.get('clld.app_template', 'app.mako')}"/>
+<%inherit file="../home_comp.mako"/>
 <%namespace name="util" file="../util.mako"/>
 <%! active_menu_item = "contributors" %>
 <%block name="title">Project member ${ctx.name}</%block>

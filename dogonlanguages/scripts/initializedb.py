@@ -64,8 +64,14 @@ def main(args):
     for c in util.CONTRIBUTORS:
         id_ = slug(c.name.split()[-1])
         data.add(models.Member, id_, id=id_, **attr.asdict(c))
+    data.add(
+        models.Member, 'forkel',
+        id='forkel',
+        name='Robert Forkel',
+        email='forkel@shh.mpg.de',
+        in_project=False)
 
-    for i, id_ in enumerate(['heath', 'moran']):
+    for i, id_ in enumerate(['moran', 'forkel', 'heath']):
         DBSession.add(common.Editor(
             dataset=dataset, ord=i + 1, contributor=data['Member'][id_]))
 

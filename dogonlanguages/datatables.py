@@ -25,6 +25,9 @@ class DogonLanguages(Languages):
 
 
 class ProjectMembers(Contributors):
+    def base_query(self, query):
+        return query.filter(models.Member.in_project == True)
+
     def col_defs(self):
         return [
             NameCol(self, 'name'),
@@ -148,7 +151,7 @@ class Words(Values):
                 Col(self, 'subdomain',
                     get_object=lambda item: item.valueset.parameter.subdomain,
                     model_col=models.Subdomain.name),
-                LinkCol(self, 'word', model_col=common.Value.name),
+                Col(self, 'word', model_col=common.Value.name),
                 ]
         if self.parameter:
             return [
@@ -156,7 +159,7 @@ class Words(Values):
                     self, 'language',
                     get_object=lambda item: item.valueset.language,
                     model_col=common.Language.name),
-                LinkCol(self, 'word', model_col=common.Value.name),
+                Col(self, 'word', model_col=common.Value.name),
             ]
         res = [
             LinkCol(
@@ -177,7 +180,7 @@ class Words(Values):
             Col(self, 'subdomain',
                 get_object=lambda item: item.valueset.parameter.subdomain,
                 model_col=models.Subdomain.name),
-            LinkCol(self, 'word', model_col=common.Value.name),
+            Col(self, 'word', model_col=common.Value.name),
             Col(self, 'literal meaning', model_col=common.Value.description),
             Col(self, 'note', model_col=models.Counterpart.comment),
         ]

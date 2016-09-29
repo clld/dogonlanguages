@@ -13,6 +13,8 @@ from dogonlanguages import views
 _ = lambda s: s
 _('Parameters')
 _('Sources')
+_('Contributors')
+_('Other')
 
 
 def main(global_config, **settings):
@@ -35,12 +37,17 @@ def main(global_config, **settings):
         ('parameters', partial(menu_item, 'parameters', label='Thesaurus')),
         ('villages', partial(menu_item, 'villages', label='Villages')),
         ('florafauna', partial(menu_item, 'florafauna', label='Flora-Fauna')),
-        ('contributors', partial(menu_item, 'contributors', label='Project members')),
-        ('sources', partial(menu_item, 'sources', label='Bibliography')),
-        ('bangime', partial(menu_item, 'bangime', label='Bangime')),
-        ('other', partial(menu_item, 'other', label='Other Languages')),
-        ('files', partial(menu_item, 'files', label='Files')),
+        #('contributors', partial(menu_item, 'contributors', label='Project members')),
+        ('sources', partial(menu_item, 'sources', label='Materials')),
+        #('bangime', partial(menu_item, 'bangime', label='Bangime')),
+        #('other', partial(menu_item, 'other', label='Other Languages')),
+        #('files', partial(menu_item, 'files', label='Files')),
     )
+    home_comp = config.registry.settings['home_comp']
+    home_comp = [
+        'bangime', 'other',
+        'contributors'] + home_comp
+    config.add_settings({'home_comp': home_comp})
     config.register_resource('village', models.Village, IVillage, with_index=True)
     config.register_resource('file', models.File, IFile, with_index=True)
 

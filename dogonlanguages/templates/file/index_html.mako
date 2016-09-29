@@ -1,7 +1,12 @@
 <%inherit file="../${context.get('request').registry.settings.get('clld.app_template', 'app.mako')}"/>
 <%namespace name="util" file="../util.mako"/>
-<%! active_menu_item = "files" %>
+<%! active_menu_item = "sources" %>
 <%block name="title">${_('Files')}</%block>
+
+<%def name="contextnav()">
+    ${util.contextnavitem('sources', label=_('Sources'))}
+    ${util.contextnavitem('files', label='Files')}
+</%def>
 
 <h2>Files</h2>
 

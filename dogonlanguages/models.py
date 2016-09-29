@@ -47,6 +47,7 @@ class Languoid(CustomModelMixin, Language):
 class Member(CustomModelMixin, Contributor):
     pk = Column(Integer, ForeignKey('contributor.pk'), primary_key=True)
     abbr = Column(Unicode)
+    in_project = Column(Boolean, default=True)
 
 
 @implementer(interfaces.IParameter)

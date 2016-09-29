@@ -1,13 +1,20 @@
-<%inherit file="${context.get('request').registry.settings.get('clld.app_template', 'app.mako')}"/>
+# coding: utf8
+<%inherit file="home_comp.mako"/>
 <%namespace name="util" file="util.mako"/>
 <%! active_menu_item = "other" %>
 <%block name="title">Other Languages</%block>
 
 <h2>Other Languages</h2>
 
-<p>In addition to Dogon and Bangime, our NSF-funded project includes Tiefo, Seenku, and Jalkunan in Burkina Faso. We have also hosted and/or supported by University of Michigan or other non-NSF funds, linguists working on Jenaama (Mali), Bobo Maduré and Viemo (Burkina Faso), and Mbre (Côte d'Ivoire). More information on these languages and on what we are doing or hope to do with them, is below</p>
+<p>
+    In addition to Dogon and Bangime, our NSF-funded project includes Tiefo, Seenku, and Jalkunan
+    in Burkina Faso. We have also hosted and/or supported by University of Michigan or other non-NSF
+    funds, linguists working on Jenaama (Mali), Bobo Maduré and Viemo (Burkina Faso), and Mbre (Côte d'Ivoire).
+    More information on these languages and on what we are doing or hope to do with them, is below
+</p>
 
-<h3>Bozo languages of Mali</h3>
+
+<%util:section title="Bozo languages of Mali" level="3" id="bozo">
 <h4>Jenaama (aka Sorogaama)</h4>
 
 <p>Jenaama is the currently accepted name for a language consisting of multiple dialects, belonging to the Bozo language family, which is part of the larger Mande family. Within Mande, the closest relative of Bozo is thought to be Soninke.</p>
@@ -62,9 +69,10 @@
 </ul>
 
 <p>Heath plans to work on Jenaama for a few weeks around Christmas school vacation 2016-17, and hopes to do systematic fieldwork on Jenaama and its dialects in the next few years. The grammar fragments and the lexicon will be periodically updated on this page. </p>
+</%util:section>
 
 
-<h3>Gur (?) languages of SW Burkina</h3>
+<%util:section title="Gur (?) languages of SW Burkina" level="3" id="tiefo">
 <h4>Tiefo languages</h4>
 <p>There are two related but mutually unintelligible languages spoken in the Tiefo (cɛ̀fɔ́). One is still spoken by two old people in Nyafogo village; we provisionally call it Tiefo-N. The other is still spoken by one extended multigenerational family in Daramandougou village; we refer to it as Tiefo-D. These labels are short for Tiefo-Nyafogo and Tiefo-Daramandougou, though the term Tiefo-N also includes the recently extinct and largely undocumented dialect of Noumoudara.</p>
 
@@ -104,9 +112,10 @@
 <p>Our NSF-funded project hosted (but did not otherwise directly fund) Nathan Severance in our Bobo Dioulasso base in 2014-15 when he was a recent graduate of Dartmouth College; he returned for summer fieldwork 2016, by then as a graduate student in Linguistics at University of Oregon.</p>
 
 <p>Nate's work is on Viemo, and on the sociolinguistics of Viemo and Jula in an increasingly Jula-dominant environment. </p>
+</%util:section>
 
 
-<h3>Mande languages of SW Burkina</h3>
+<%util:section title="Mande languages of SW Burkina" level="3" id="mande">
 <h4>Bobo Madure</h4>
 <p>Bobo Madure is one of approximately four recognized languages of the Bobo subgroup of Mande. They are spoken in and around (mainly north of) Bobo Dioulasso in SW Burkina Faso. Bobo Dioulasso is the second largest city in Burkina. As its name suggests, it has both Bobo and Jula (Dioula) populations, the Bobo being the original inhabitants and the Jula the newcomers.</p>
 
@@ -122,17 +131,16 @@
 <p>Fieldwork on Jalkunan was carried out by project member Vu Truong in 2013-15, at our base in Bobo Dioulasso with occasional village visits. He was funded for the first year by our project, and in the second year by a Fulbright fellowship. He is not a graduate student at University of Chicago.</p>
 
 <p>Jeffrey Heath is now (9/16) working directly with a Jalkunan speaker and plans to complete a short grammar and a lexicon before May '17. A partial lexicon and some texts by Truong will also be made use of. Relevant draft documents will be disseminated on this site.</p>
+</%util:section>
 
 
-<h3>unclassified, Côte d'Ivoire</h3>
+<%util:section title="unclassified, Côte d'Ivoire" level="3" id="mbre">
 <h4>Mbre (also known as Bere, Pere)</h4>
 <p>The language known as Mbre, Bere, or Pere (Pɛrɛ) in the literature is spoken in two villages in northern Côte d'Ivoire. Its genetic position is unknown. The circulation of a core vocabulary by Denis Creissels to specialists in major language families of the zone did not result in any "hits." There was a general feeling that it was Niger-Congo and not Mande, but no specific affinity to a recognized Niger-Congo family (e.g. Kru, Kwa) was identified. A recent idea is that it is distantly related to Kwa, but "Kwa" itself is a sprawling collection of languages and its genetic validyt is suspect. It is best to consider Mbre an isolate until further notice.</p>
 
 <p>Mbre is entirely surrounded by Koro, a Mande language related to Jula and Bambara. Its linear order is CVOX (perfective) and C-wɔ̀-OVX (imperfective, including an aspect particle). Negation is clause-final. Suffixal morphology is modest. Two unresolved analytical problems are the nature of a nominal suffix  a, and tonal alternations in verb stems.</p>
 
 <p>Fieldwork on Mbre has been carried out since 2014 by graduate student Ibrahima Tioté of the University of Cocody in Abidjan. He is a native Koro speaker, so he know the environment well. His funding was initially from Jeffrey Heath, and later (2016-17) from the University of Michigan. He is currently finishing a doctoral dissertation on the language. We hope to expand this into a full-fledged reference grammar, a complete lexicon with English/French glosses, and a text collection, in the next few years. Heath will join Tioté for a village visit during winter '16-'17.</p>
-
-
-
+</%util:section>
 
 <p>[Jeffrey Heath, last update August 2016]</p>

@@ -409,7 +409,12 @@ def image_md(name):
 
     def todate(s):
         if s:
-            return dateutil.parser.parse(totext(s)).date()
+            s = totext(s).split()
+            if len(s) == 2:
+                d, m, y = 1, int(s[0]), int(s[1])
+            else:
+                d, m, y = 1, 1, int(s[0])
+            return date(y, m, d)
 
     def tolatlon(s):
         return map(parse_deg, s[1:].replace('+', '').replace('_', ' ').split('W'))
