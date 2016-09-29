@@ -41,6 +41,7 @@ def main(args):
     dataset = common.Dataset(
         id=dogonlanguages.__name__,
         name="Dogon and Bangime Linguistics",
+        contact="schweinehaxen@hotmail.com",
         publisher_name="Max Planck Institute for the Science of Human History",
         publisher_place="Jena",
         publisher_url="http://shh.mpg.de",
