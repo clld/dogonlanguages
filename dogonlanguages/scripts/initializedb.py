@@ -46,7 +46,7 @@ def main(args):
         publisher_place="Jena",
         publisher_url="http://shh.mpg.de",
         license="http://creativecommons.org/licenses/by/4.0/",
-        domain='dogonlanguages.clld.org',
+        domain='dogonlanguages.org',
         jsondata={
             'license_icon': 'cc-by.png',
             'license_name': 'Creative Commons Attribution 4.0 International License'}
