@@ -11,16 +11,28 @@ class Tests(TestWithApp):
     def test_home(self):
         self.app.get('/')
         self.app.get_dt('/contributors')
-        self.app.get_dt('/parameters')
+        self.app.get_dt('/thesaurus.cfm')
         self.app.get_dt('/values')
         self.app.get_dt('/languages.cfm')
-        self.app.get_dt('/sources')
+        self.app.get_dt('/bibliography.cfm')
+        self.app.get_dt('/geography.cfm')
         self.app.get('/contributors')
-        self.app.get('/parameters')
+        self.app.get('/thesaurus.cfm')
         self.app.get('/values')
         self.app.get('/languages.cfm')
-        self.app.get('/sources')
-        #self.app.get_html('/parameters/201-10-15')
-        #self.app.get_html('/parameters/201-10-10')
-        #self.app.get_html('/parameters/10-10-2')
-        #self.app.get_json('/parameters/10-10-2.geojson')
+        self.app.get('/bibliography.cfm')
+        self.app.get('/geography.cfm')
+        self.app.get('/villages/638')
+
+    def test_parameter(self):
+        self.app.get_html('/parameters/60591')
+        self.app.get_html('/parameters/50283')
+        self.app.get_html('/parameters/01767')
+
+    def test_pages(self):
+        self.app.get('/other')
+        self.app.get('/florafauna.cfm')
+        self.app.get('/bangime.cfm')
+
+    def test_language(self):
+        self.app.get('/languages/ampa1238')

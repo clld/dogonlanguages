@@ -5,16 +5,15 @@
 <% images = [f for f in ctx._files if f.mime_type.startswith('image')] %>
 <% videos = [f for f in ctx._files if f.mime_type.startswith('video')] %>
 
-% if ctx.tsammalex_taxon or ctx.family:
+% if ctx.family or ctx.species:
     <ul class="breadcrumb">
         % if ctx.family:
             % for name in reversed(ctx.family.split(',')):
                 <li class="active">${name.strip()}</li> <span class="divider">/</span>
             % endfor
-            <li class="active">${ctx.species} ${u.eol_link(request, ctx)}</li>
         % endif
-        % if ctx.tsammalex_taxon:
-            <li class="active">${h.external_link('http://tsammalex.clld.org/parameters/' + ctx.tsammalex_taxon, 'Tsammalex')}</li>
+        % if ctx.species:
+            <li class="active">${ctx.species}</li>
         % endif
     </ul>
 % endif
