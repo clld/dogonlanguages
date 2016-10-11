@@ -1,8 +1,11 @@
 from functools import partial
 
 from pyramid.config import Configurator
+from sqlalchemy.orm import joinedload_all, joinedload
 
-from clld.web.app import menu_item
+from clld.web.app import menu_item, CtxFactoryQuery
+from clld.db.models import common
+from clld.interfaces import ICtxFactoryQuery
 
 # we must make sure custom models are known at database initialization!
 from dogonlanguages import models
@@ -15,6 +18,23 @@ _('Parameters')
 _('Sources')
 _('Contributors')
 _('Other')
+
+
+class CustomFactoryQuery(CtxFactoryQuery):
+    def refined_query(self, query, model, req):
+        """To be overridden.
+
+        Derived classes may override this method to add model-specific query
+        refinements of their own.
+        """
+        if model == common.Contribution:
+            query = query.options(
+                joinedload_all(
+                    common.Contribution.references,
+                    common.ContributionReference.source),
+                joinedload(common.Contribution.data),
+            )
+        return query
 
 
 def main(global_config, **settings):
@@ -50,7 +70,7 @@ def main(global_config, **settings):
     config.add_settings({'home_comp': home_comp})
     config.register_resource('village', models.Village, IVillage, with_index=True)
     config.register_resource('file', models.File, IFile, with_index=True)
-
+    config.registry.registerUtility(CustomFactoryQuery(), ICtxFactoryQuery)
     config.add_page('bangime')
     config.add_page('florafauna')
     config.add_page('other')

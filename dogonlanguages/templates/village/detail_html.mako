@@ -11,10 +11,12 @@
     </div>
     <div class="span4">
         <dl>
-            <dt>Location</dt>
-            <dd>
-                ${u.format_coordinates(ctx)}
-            </dd>
+            % if ctx.latitude is not None:
+                <dt>Location</dt>
+                <dd>
+                    ${u.format_coordinates(ctx)}
+                </dd>
+            % endif
             % if ctx.transcribed_name:
                 <dt>Transcribed name</dt>
                 <dd>${ctx.transcribed_name}</dd>
@@ -46,9 +48,11 @@
             % endif
         </dl>
     </div>
+    % if ctx.latitude is not None:
     <div class="span4 well">
         ${request.map.render()}
     </div>
+    % endif
 </div>
 
 <% images = [f for f in ctx._files if f.mime_type.startswith('image')] %>
