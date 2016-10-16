@@ -128,9 +128,14 @@
 
 <p>The language is declining in vitality, and the best speakers are middle-aged and older. It is therefore a priority for the Burkina wing of our NSF-funded project, which focuses on small-population and endangered languages.</p>
 
-<p>Fieldwork on Jalkunan was carried out by project member Vu Truong in 2013-15, at our base in Bobo Dioulasso with occasional village visits. He was funded for the first year by our project, and in the second year by a Fulbright fellowship. He is not a graduate student at University of Chicago.</p>
+<p>Fieldwork on Jalkunan was carried out by project member Vu Truong in 2013-15, at our base in Bobo Dioulasso with occasional village visits. He was funded for the first year by our project, and in the second year by a Fulbright fellowship. He is now a graduate student at University of Chicago.</p>
 
-<p>Jeffrey Heath is now (9/16) working directly with a Jalkunan speaker and plans to complete a short grammar and a lexicon before May '17. A partial lexicon and some texts by Truong will also be made use of. Relevant draft documents will be disseminated on this site.</p>
+<p>Jeffrey Heath is now (9/16) working directly with a Jalkunan speaker and plans to complete a short grammar and a lexicon before May '17. A partial lexicon and some texts by Truong will also be made use of. A draft grammar and lexicon are available below.</p>
+
+<ul>
+<li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/Jalkunan_grammar.docx', label='Jalkunan_grammar.docx')}</li>
+<li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/Jalkunan_lexical_spreadsheet_2016.xlsx', label='Jalkunan_lexical_spreadsheet_2016.xlsx')}</li>
+</ul>
 </%util:section>
 
 
