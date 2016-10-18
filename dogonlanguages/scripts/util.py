@@ -8,7 +8,6 @@ from datetime import date
 
 from purl import URL
 import attr
-import dateutil
 from fuzzywuzzy import fuzz
 from clldutils.dsv import reader
 from clldutils.path import Path
@@ -26,6 +25,7 @@ class File(object):
     mime_type = attr.ib()
     date_created = attr.ib()
     size = attr.ib()
+    duration = attr.ib()
     jsondata = attr.ib()
 
 
@@ -44,6 +44,7 @@ def iter_files(args):
         Mali_villages_with_coordinates_for_website.json
         texts.json
         videos_from_website.json
+        videos.json
     """.split():
         files.update(load(args.data_file('repos', n)))
     missing, matched = 0, 0
@@ -65,11 +66,12 @@ def iter_files(args):
                 guess_type(fname)[0].decode('utf8'),
                 d,
                 cdstar['size'],
+                cdstar.get('duration'),
                 cdstar)
             matched += 1
         else:
             missing += 1
-    print(missing, matched)
+    print('iter_files', missing, matched)
 
 
 def get_contributors(rec, data):
@@ -82,16 +84,6 @@ def get_contributors(rec, data):
 def update_species_data(species, d):
     eol = d.get('eol')
     if eol:
-        for an in eol.get('ancestors', []):
-            if not an.get('taxonRank'):
-                continue
-            for tr in ['family']:
-                if tr == an['taxonRank']:
-                    curr = getattr(species, tr)
-                    #if curr != an['scientificName']:
-                    #print(tr, ':', curr, '-->', an['scientificName'])
-                        #setattr(species, tr, an['scientificName'])
-
         species.update_jsondata(eol_id=eol['identifier'])
 
 
@@ -315,26 +307,25 @@ def ff_images(args):
     missed, found, uploaded_ = 0, 0, 0
     for i, img in enumerate(reader(args.data_file('repos', 'dogon_flora-fauna.csv'), delimiter=',', namedtuples=True)):
         stem = Path(img.filenames.encode('utf8')).stem
-        if stem in path_to_md5:
-            found += 1
-            if path_to_md5[stem] in uploaded:
-                m = ref_pattern.search(stem)
-                uploaded_ += 1
-                yield FFImage(
-                    path_to_md5[stem],
-                    Path(files[path_to_md5[stem]][0].encode('utf8')).name,
-                    None,
-                    m.group('ref') if m else None,
-                    None,
-                    [],
-                    uploaded[path_to_md5[stem]],
-                    tsammalex.get(path_to_md5[stem]))
-        else:
-            #print(img.filenames)
-            print(('http://dogonlanguages.org/%s%s' % (img.files, img.filenames)).encode('utf8'))
-            missed += 1
+        assert stem in path_to_md5
+        found += 1
+        if path_to_md5[stem] in uploaded:
+            m = ref_pattern.search(stem)
+            uploaded_ += 1
+            yield FFImage(
+                path_to_md5[stem],
+                Path(files[path_to_md5[stem]][0].encode('utf8')).name,
+                None,
+                m.group('ref') if m else None,
+                None,
+                [],
+                uploaded[path_to_md5[stem]],
+                tsammalex.get(path_to_md5[stem]))
 
-    for md5, paths in load(args.data_file('repos', 'videos_from_website.json')).items():
+    videos = load(args.data_file('repos', 'videos_from_website.json'))
+    videos.update(load(args.data_file('repos', 'videos.json')))
+
+    for md5, paths in videos.items():
         if md5 in uploaded:
             path = Path(paths[0].encode('utf8'))
             m = ref_pattern.search(path.stem)
@@ -351,7 +342,7 @@ def ff_images(args):
         else:
             missed += 1
 
-    print(missed, uploaded_)
+    print('ff_images', missed, uploaded_)
 
 
 @attr.s
@@ -388,7 +379,6 @@ def parse_deg(s):
                 return float(deg) + (float(min) / 60)
             else:
                 if s not in ['0', 'see Ogourou']:
-                    print(s)
                     raise ValueError
             return
 
@@ -611,5 +601,5 @@ def get_villages(args):
                         v.images.append(img)
                         break
             else:
-                print('not matched: %s' % img.name)
+                print('get_villages - not matched: %s' % img.name)
     return villages

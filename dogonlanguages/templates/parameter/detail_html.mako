@@ -39,9 +39,10 @@
     % endif
 </ul>
 
-<h2>${ctx.name}</h2>
-
-<table class="table table-nonfluid">
+<div class="row-fluid" style="margin-top: 10px">
+    <div class="span8">
+        <h2>${ctx.name}</h2>
+<table class="table">
     <thead>
         <tr>
             <th></th>
@@ -67,21 +68,16 @@
         </tr>
     </tbody>
 </table>
+</div>
+    <div class="span4">
+        % if videos:
+            <div class="well">
+                ${u.video_detail(*videos)|n}
+            </div>
+        % endif
+    </div>
+</div>
 
-% if videos:
-    <ul class="inline">
-    % for vid in videos:
-        <li><a href="${u.cdstar_url(vid)}">${u.format_file(vid)}</a></li>
-##<video id="video_${vid.pk}" class="video-js vjs-default-skin"
-##       controls preload="auto" width="640" height="264"
-##       ##poster="http://video-js.zencoder.com/oceans-clip.png"
-##       data-setup='{"example_option":true}'>
-##    <source src="${u.cdstar_url(vid)}" type='${vid.mime_type}' />
-##    <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
-##   </video>
-    % endfor
-    </ul>
-% endif
 
 % for chunk in [images[i:i + 3] for i in range(0, len(images), 3)]:
 <div class="row-fluid" id="images">

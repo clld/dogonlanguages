@@ -1,0 +1,1 @@
+${u.video_detail(*ctx.files, **dict(autoplay='autoplay'))}

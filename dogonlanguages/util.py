@@ -7,6 +7,8 @@ from clld.web.util.htmllib import HTML
 from clld.web.util.helpers import icon
 from clldutils import misc
 
+from dogonlanguages.models import Movie
+
 
 def tsammalex_link(request, concept):
     if not concept.tsammalex_taxon:
@@ -48,13 +50,53 @@ def format_size(f):
     return misc.format_size(f.jsondata['size'])
 
 
-def format_file(f):
+def format_duration(f):
+    if f.duration:
+        return "%d:%02d" % divmod(f.duration, 60)
+    return ''
+
+
+def format_file(f, with_mime_type=True):
     icon_ = {
         'image': 'camera',
         'video': 'facetime-video',
     }.get(f.mime_type.split('/')[0], 'file')
-    label = ' [%s; %s]' % (f.mime_type, misc.format_size(f.jsondata['size']))
+    if with_mime_type:
+        label = f.mime_type + '; '
+    else:
+        label = ''
+    label = ' [%s%s]' % (label, misc.format_size(f.jsondata['size']))
     return HTML.span(icon(icon_, inverted=True), label, class_='badge')
+
+
+def format_videos(fs):
+    return HTML.ul(
+        *[HTML.li(HTML.a(' ' + format_file(f), href=cdstar_url(f))) for f in fs],
+        **dict(class_='unstyled'))
+
+
+def video_detail(*objs, **kw):
+    def video(mp4):
+        return HTML.video(
+            HTML.source(src=cdstar_url(mp4), type=mp4.mime_type),
+            width='100%', controls='controls', preload='none',
+            **kw)
+
+    mp4s, name, dl = [], None, []
+    if isinstance(objs[0], Movie):
+        dl.extend([HTML.dt('Description'), HTML.dd(objs[0].name)])
+        dl.extend([HTML.dt('Duration'), HTML.dd(format_duration(objs[0]))])
+        mp4s = [objs[0].get_file('mp4')]
+        files = objs[0].files
+    else:
+        for obj in objs:
+            if obj.mime_type == 'video/mp4':
+                mp4s.append(obj)
+        files = objs
+    dl.extend([HTML.dt('Formats'), HTML.dd(format_videos(files))])
+    return HTML.div(
+        HTML.ul(*[HTML.li(video(mp4)) for mp4 in mp4s], **dict(class_='unstyled')),
+        HTML.dl(*dl))
 
 
 def format_coordinates(obj):

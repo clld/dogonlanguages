@@ -21,7 +21,7 @@ from clld.db.models.common import (
     FilesMixin, HasFilesMixin,
 )
 
-from dogonlanguages.interfaces import IVillage, IFile
+from dogonlanguages.interfaces import IVillage, IFile, IMovie
 
 
 class Domain(Base, IdNameDescriptionMixin):
@@ -150,13 +150,33 @@ class Village(Base, IdNameDescriptionMixin, HasFilesMixin, LatLonMixin):
     source_of_coordinates = Column(Unicode)
 
 
+@implementer(IMovie)
+class Movie(Base, IdNameDescriptionMixin):
+    # id: slug of filename
+    # name: summary description
+    # description: category
+    duration = Column(Float)
+    place = Column(Unicode)
+    village_pk = Column(Integer, ForeignKey('village.pk'))
+    village = relationship(Village, backref='movies')
+
+    def get_file(self, subtype):
+        for f in self.files:
+            if f.mime_type == 'video/' + subtype:
+                return f
+
+
 @implementer(IFile)
 class File(Base, IdNameDescriptionMixin):
     # id: md5 checksum
     # name: filename
     size = Column(Integer)
+    duration = Column(Float)
     date_created = Column(Date)
     mime_type = Column(Unicode)
+
+    movie_pk = Column(Integer, ForeignKey('movie.pk'))
+    movie = relationship(Movie, backref='files')
 
 
 class Fotographer(Base):

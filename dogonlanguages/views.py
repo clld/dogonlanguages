@@ -1,7 +1,12 @@
 from __future__ import unicode_literals
+from itertools import chain
 
+import attr
+from clld.db.meta import DBSession
 from clld.db.models.common import Source
 from clldutils.misc import slug
+
+from dogonlanguages.models import File, Village
 
 
 def bangime(req):

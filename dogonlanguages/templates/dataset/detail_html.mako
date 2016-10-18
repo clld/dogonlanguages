@@ -36,7 +36,7 @@
 </p>
 <p>
     Nonlinguist viewers will hopefully especially enjoy our
-    <a href="${request.route_url('files')}">documentary videos</a>
+    <a href="${request.route_url('movies')}">documentary videos</a>
     and/or our
     <a href="${request.route_url('florafauna')}">flora-fauna materials</a>.
     Enjoy!

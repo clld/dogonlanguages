@@ -10,7 +10,7 @@ from clld.web.datatables.source import Sources, TypeCol
 from clld.web.datatables.language import Languages
 from clld.web.datatables.base import LinkCol, Col, DataTable, LinkToMapCol, DetailsRowLinkCol
 from clld.web.util.htmllib import HTML
-from clld.web.util.helpers import icon, link
+from clld.web.util.helpers import icon, link, external_link
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.db.util import get_distinct_values
@@ -294,6 +294,50 @@ class Files(DataTable):
         ]
 
 
+class PlaceCol(Col):
+    def format(self, item):
+        if item.village:
+            return link(self.dt.req, item.village, label=item.place)
+        return item.place
+
+
+class FileCol(Col):
+    __kw__ = {'bSearchable': False, 'bSortable': False}
+
+    def __init__(self, dt, name, **kw):
+        self.subtype = kw.pop('subtype', name)
+        kw['sDescription'] = {
+            'mp4': external_link('https://en.wikipedia.org/wiki/MPEG-4'),
+            'quicktime': external_link('https://en.wikipedia.org/wiki/QuickTime'),
+            'x-msvideo': external_link('https://en.wikipedia.org/wiki/Audio_Video_Interleave'),
+        }[self.subtype]
+        kw['sTitle'] = name.upper()
+        Col.__init__(self, dt, name, **kw)
+
+    def format(self, item):
+        f = item.get_file(self.subtype)
+        if f:
+            return HTML.a(' ' + util.format_file(f, with_mime_type=False), href=util.cdstar_url(f))
+        return ''
+
+
+class Movies(DataTable):
+    def col_defs(self):
+        return [
+            DetailsRowLinkCol(self, '#', button_text='watch'),
+            Col(self, 'name'),
+            Col(self, 'description', sTitle='Category', choices=get_distinct_values(models.Movie.description)),
+            Col(self, 'duration', format=lambda i: util.format_duration(i)),
+            PlaceCol(self, 'place'),
+            #
+            # TODO: avi/qt/mp4
+            #
+            FileCol(self, 'mp4'),
+            FileCol(self, 'quicktime'),
+            FileCol(self, 'avi', subtype='x-msvideo'),
+        ]
+
+
 def includeme(config):
     config.register_datatable('contributors', ProjectMembers)
     config.register_datatable('languages', DogonLanguages)
@@ -301,4 +345,5 @@ def includeme(config):
     config.register_datatable('values', Words)
     config.register_datatable('villages', Villages)
     config.register_datatable('files', Files)
+    config.register_datatable('movies', Movies)
     config.register_datatable('sources', Documents)

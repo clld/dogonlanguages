@@ -9,7 +9,7 @@ from clld.interfaces import ICtxFactoryQuery
 
 # we must make sure custom models are known at database initialization!
 from dogonlanguages import models
-from dogonlanguages.interfaces import IVillage, IFile
+from dogonlanguages.interfaces import IVillage, IFile, IMovie
 from dogonlanguages import views
 
 
@@ -61,7 +61,7 @@ def main(global_config, **settings):
         ('sources', partial(menu_item, 'sources', label='Materials')),
         #('bangime', partial(menu_item, 'bangime', label='Bangime')),
         #('other', partial(menu_item, 'other', label='Other Languages')),
-        #('files', partial(menu_item, 'files', label='Files')),
+        ('movies', partial(menu_item, 'movies', label='Videos')),
     )
     home_comp = config.registry.settings['home_comp']
     home_comp = [
@@ -69,10 +69,12 @@ def main(global_config, **settings):
         'contributors'] + home_comp
     config.add_settings({'home_comp': home_comp})
     config.register_resource('village', models.Village, IVillage, with_index=True)
+    config.register_resource('movie', models.Movie, IMovie, with_index=True)
     config.register_resource('file', models.File, IFile, with_index=True)
     config.registry.registerUtility(CustomFactoryQuery(), ICtxFactoryQuery)
     config.add_page('bangime')
     config.add_page('florafauna')
     config.add_page('other')
+    config.add_page('typology')
 
     return config.make_wsgi_app()

@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 import sys
 from collections import defaultdict
 from mimetypes import guess_type
+import socket
 
 from sqlalchemy.orm import joinedload
 import attr
@@ -21,12 +22,22 @@ except ImportError:
 import dogonlanguages
 from dogonlanguages import models
 from dogonlanguages.scripts import util
-from dogonlanguages.scripts.data import LANGUAGES
+from dogonlanguages.scripts.data import LANGUAGES, MOVIES
 
 
 def main(args):
+    #
+    # order of init:
+    # - villages
+    # - files
+    # - movies
+    #
+    videos = defaultdict(list)
     for f in util.iter_files(args):
-        DBSession.add(models.File(**attr.asdict(f)))
+        obj = models.File(**attr.asdict(f))
+        if obj.mime_type.startswith('video'):
+            videos[slug(obj.name.split('.')[0])].append(obj)
+        DBSession.add(obj)
 
     lexicon = list(util.iter_lexicon(args))
     villages = util.get_villages(args)
@@ -54,9 +65,14 @@ def main(args):
     DBSession.add(dataset)
 
     if Glottolog:
-        glottolog = Glottolog(
-            Path(dogonlanguages.__file__).parent.parent.parent.parent.joinpath(
-                'glottolog3', 'glottolog'))
+        if socket.gethostname() == 'dlt5502178l':
+            glottolog = Glottolog(
+                Path(dogonlanguages.__file__).parent.parent.parent.parent.joinpath(
+                    'glottolog3', 'glottolog'))
+        else:
+            glottolog = Glottolog(
+                Path(dogonlanguages.__file__).parent.parent.parent.parent.joinpath(
+                    'glottolog'))
         languoids = {l.id: l for l in glottolog.languoids()}
     else:
         languoids = {}
@@ -125,6 +141,7 @@ def main(args):
             lang.latitude, lang.longitude = 14.00, -3.25
         add_language_codes(data, lang, gl_lang.iso, glottocode=gc)
 
+    villages_by_name = defaultdict(list)
     contrib_by_initial = {c.abbr: c for c in data['Member'].values()}
     for i, village in enumerate(villages):
         lang = None
@@ -152,6 +169,7 @@ def main(args):
             languoid=lang,
             jsondata=village.data,
         )
+        villages_by_name[village.name].append(v)
         for img in village.images:
             mimetype = guess_type(img.name)[0]
             if mimetype:
@@ -170,6 +188,22 @@ def main(args):
                     if initial in contrib_by_initial:
                         models.Fotographer(
                             foto=f, contributor=contrib_by_initial[initial])
+
+    for cat, desc, place, name in MOVIES:
+        s = slug(name)
+        m = models.Movie(
+            id=s,
+            name=desc,
+            description=cat,
+            place=place,
+        )
+        if place in villages_by_name and len(villages_by_name[place]) == 1:
+            m.village = villages_by_name[place][0]
+            #print('found village: %s' % name)
+        for v in videos[s]:
+            #print('found video: %s' % name)
+            v.movie = m
+            m.duration = v.duration
 
     names = defaultdict(int)
     for concept in lexicon:
