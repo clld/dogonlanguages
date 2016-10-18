@@ -86,7 +86,8 @@ def video_detail(*objs, **kw):
     if isinstance(objs[0], Movie):
         dl.extend([HTML.dt('Description'), HTML.dd(objs[0].name)])
         dl.extend([HTML.dt('Duration'), HTML.dd(format_duration(objs[0]))])
-        mp4s = [objs[0].get_file('mp4')]
+        if objs[0].get_file('mp4'):
+            mp4s = [objs[0].get_file('mp4')]
         files = objs[0].files
     else:
         for obj in objs:
