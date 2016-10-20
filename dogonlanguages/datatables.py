@@ -284,6 +284,7 @@ def wrap_fname(i):
 class Files(DataTable):
     def col_defs(self):
         return [
+            DetailsRowLinkCol(self, '#', button_text='view'),
             Col(self, 'name', format=wrap_fname),
             ViewCol(self, 'view'),
             Col(self, 'size', format=lambda i: util.format_size(i)),

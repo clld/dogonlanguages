@@ -178,6 +178,14 @@ class File(Base, IdNameDescriptionMixin):
     movie_pk = Column(Integer, ForeignKey('movie.pk'))
     movie = relationship(Movie, backref='files')
 
+    @property
+    def maintype(self):
+        return self.mime_type.split('/')[0]
+
+    @property
+    def subtype(self):
+        return self.mime_type.split('/')[1]
+
 
 class Fotographer(Base):
     foto_pk = Column(Integer, ForeignKey('village_files.pk'))

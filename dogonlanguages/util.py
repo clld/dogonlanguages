@@ -4,7 +4,7 @@ from math import floor
 from six import text_type
 from clld.db.models.common import Source
 from clld.web.util.htmllib import HTML
-from clld.web.util.helpers import icon
+from clld.web.util.helpers import icon, link
 from clldutils import misc
 
 from dogonlanguages.models import Movie
@@ -32,6 +32,13 @@ def concepticon_link(request, concept):
             width=30),
         title='corresponding concept set at Concepticon',
         href=concept.concepticon_url)
+
+
+def format_document_link(req, doc, label):
+    return HTML.tr(
+        HTML.td(link(req, doc, label=label)),
+        HTML.td(*[HTML.a(format_file(f), href=cdstar_url(f)) for f in doc._files])
+    )
 
 
 def cdstar_url(obj, type_='original'):
@@ -77,6 +84,8 @@ def format_videos(fs):
 
 def video_detail(*objs, **kw):
     def video(mp4):
+        if mp4.jsondata.get('thumbnail'):
+            kw['poster'] = cdstar_url(mp4, type_='thumbnail')
         return HTML.video(
             HTML.source(src=cdstar_url(mp4), type=mp4.mime_type),
             width='100%', controls='controls', preload='none',

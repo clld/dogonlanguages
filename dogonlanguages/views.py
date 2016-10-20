@@ -6,7 +6,7 @@ from clld.db.meta import DBSession
 from clld.db.models.common import Source
 from clldutils.misc import slug
 
-from dogonlanguages.models import File, Village
+from dogonlanguages.models import File, Village, Document
 
 
 def bangime(req):
@@ -34,6 +34,32 @@ def florafauna(req):
     return {
         'notes': [Source.get(slug(sid)) for sid in note_ids]
     }
+
+
+def typology(req):
+    docids = [
+        "dogonnominalclasses",
+        "dogonatrharmony",
+        "dogonexistentialparticleyv",
+        "dogonidentificationalitisx",
+        "dogonmediopassiveandcausative",
+        "dogonadpositions",
+        "dogoncasemarking",
+        "dogondoubleheadedrelativeclauses",
+        "dogondynamicandstativeverbs",
+        "dogonfocalization",
+        "dogonimperativeandhortativeverbs",
+        "dogonlexicaltonesofverbsandotherstemclasses",
+        "dogonlogophorics",
+        "dogonnasalizedsonorantsandnasalizationspreading",
+        "dogonrelativeclauses",
+        "dogonreversiveverbs",
+        "dogonsyntactictonologyofnp",
+        "dogonverbserialization",
+        "dogonvowelsymbolism",
+    ]
+    return {'docs': {d.id: d
+                     for d in DBSession.query(Document).filter(Document.id.in_(docids))}}
 
 
 def other(req):

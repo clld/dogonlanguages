@@ -5,6 +5,7 @@
 
 <%def name="contextnav()">
     ${util.contextnavitem('sources', label=_('Sources'))}
+    ${util.contextnavitem('typology', label=_('Typology'))}
     ${util.contextnavitem('files', label='Files')}
 </%def>
 

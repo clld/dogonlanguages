@@ -3,3 +3,6 @@
 <%! active_menu_item = "files" %>
 <%block name="title">${_('File')} ${ctx.name}</%block>
 
+% if ctx.maintype == 'video':
+    ${u.video_detail(ctx)}
+% endif
