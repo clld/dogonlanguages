@@ -349,11 +349,35 @@ def ff_images(args):
 class VillageImage(object):
     id = attr.ib()
     name = attr.ib()
+    village = attr.ib()
     description = attr.ib()
     date = attr.ib()
     creators = attr.ib()
     coords = attr.ib()
     cdstar = attr.ib()
+
+
+VFN = {
+    'Qcoord;5digit_Dogon_Jamsay_Yangassadiou_near_Mondoro_ph1_MD_JH.JPG': '',
+    'P1010666_DonnoSo_Tognon_upper_06_2014.JPG': 'Tongnon',
+    'Fulfulde_Sosari_aka_Sassari_70105_N14_35_W03_54_village_03_2012_MD_JH.JPG': 'Soosari',
+    'P1010668_DonnoSo_Wendeguele_06_2014.JPG': 'Wendegele',
+    'Qname_Dogon_TebulUre_village_below2_05_2009_JH.JPG': '',
+    'Qcoord;5digit_Dogon_Jamsay_DianwelyPomidori_03_2011_SM_JH.JPG': '',
+    'Dogon_TommoSo_Goundioli_70585_N14_36_W03_21_village_01_2011_JH.JPG': 'Goundoli',
+    'Qname_Dogon_TebulUre_hilltop_village_06_2009_JH.JPG': '',
+    'Qcoord;5digit_Dogon_NajambaKindige;Kindige_Bal_near_Dogani_10_2011_JH.JPG': '',
+    'Qcoord;5digit_Dogon_Jamsay_Yangassadiou_near_Mondoro_ph3_MD_JH.JPG': '',
+    'Qcoord_Fulfulde_WouroToroli_05_2011_JH.JPG': 'Ouro-Toroli',
+    'Qname_Dogon_TebulUre_village_below1_05_2009_JH.JPG': '',
+    'Qcoord;5digit_Dogon_Jamsay_Yangassadiou_near_Mondoro_ph2_MD_JH.JPG': '',
+    'Qcoord;5digit_Dogon_ToroTegu_Newri_XXX_abandoned_village_shadowed_area_in_center_near_Youna_03_2011_JH.JPG': '',
+    'P1010667_DonnoSo_Tognon_lower_06_2014.JPG': 'Tongnon',
+    'Qcoord;5digit_Dogon_NajambaKindigue;Kindigue_Bal_near_Dogani_10_2011_JH.JPG': '',
+    'Qwhichvillage_Songhay_HS_DakaKouko_XXX_06_2011_JH.JPG': 'Daka-Kuko',
+    'Qname_Dogon_TebulUre_village_at_base_of_rocks_06_2009_JH.JPG': '',
+    'Qname_Dogon_TebulUre_village_on_slope_in_rocks_05_2009_JH.JPG': '',
+}
 
 
 def village_images(args):
@@ -364,7 +388,7 @@ def village_images(args):
         if hash_ in uploaded:
             fname = Path(paths[0])
             name, coords, desc, date_, creators = image_md(fname.stem)
-            yield VillageImage(hash_, fname.name.decode('utf8'), desc, date_, creators, coords, uploaded[hash_])
+            yield VillageImage(hash_, fname.name.decode('utf8'), VFN.get(fname.name), desc, date_, creators, coords, uploaded[hash_])
 
 
 def parse_deg(s):
@@ -587,7 +611,7 @@ def get_villages(args):
             if '_near_' not in v.normname:
                 comp = comp.split('_near_')[0] + '_'
 
-            if '_%s_' % v.normname in comp:
+            if '_%s_' % v.normname in comp or (img.village and img.village == v.name):
                 v.images.append(img)
                 break
         else:

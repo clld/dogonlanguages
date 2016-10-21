@@ -156,7 +156,7 @@ GPS_LANGS = {
     "Tengou Kan": "",
     "Tiranige": "tira1258",
     "Togo Kan": "togo1254",
-    "Tommo So": "",
+    "Tommo So": "tomm1242",
     "Tommo So? Tengou Kan?": None,
     "Tomo Kan": "tomo1243",
     "Tondi Songway Kiini": "tond1249",
