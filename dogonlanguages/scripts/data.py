@@ -270,7 +270,7 @@ for k, v in LEX_LANGS.items():
     assert len(set(v.values())) == len(v)
     for gc in v.values():
         if gc not in [r[0] for r in LANGUAGES.values()]:
-            raise ValueError(gc)
+            raise ValueError(gc)  # pragma: no cover
 
 MOVIES = [
     (

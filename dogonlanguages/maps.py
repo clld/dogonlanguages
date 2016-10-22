@@ -110,7 +110,7 @@ class MapMarker(BaseMapMarker):
             if ctx.languoid and ctx.languoid.family == 'Dogon':
                 return DOGON_MARKER[ctx.languoid.id]
             return FAMILY_MARKER[getattr(ctx.languoid, 'family', 'unknown')]
-        return BaseMapMarker.get_icon(self, ctx, req)
+        return BaseMapMarker.get_icon(self, ctx, req)  # pragma: no cover
 
 
 class VillagesMap(Map):

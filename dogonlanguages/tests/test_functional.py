@@ -23,16 +23,29 @@ class Tests(TestWithApp):
         self.app.get('/bibliography.cfm')
         self.app.get('/geography.cfm')
         self.app.get('/villages/638')
+        self.app.get_json('/geography.cfm.geojson')
+        self.app.get('/villages/1002')
+        self.app.get('/typology')
 
     def test_parameter(self):
         self.app.get_html('/parameters/60591')
         self.app.get_html('/parameters/50283')
         self.app.get_html('/parameters/01767')
+        self.app.get_json('/parameters/01767.geojson')
 
     def test_pages(self):
         self.app.get('/other')
         self.app.get('/florafauna.cfm')
         self.app.get('/bangime.cfm')
 
+    def test_movies(self):
+        self.app.get('/movies')
+        self.app.get_dt('/movies')
+
     def test_language(self):
         self.app.get('/languages/ampa1238')
+        self.app.get_json('/languages/ampa1238.geojson')
+
+    def test_values(self):
+        self.app.get_dt('/values?parameter=00001')
+        self.app.get_dt('/values?language=ampa1238')
