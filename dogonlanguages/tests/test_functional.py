@@ -31,6 +31,7 @@ class Tests(TestWithApp):
         self.app.get_html('/parameters/60591')
         self.app.get_html('/parameters/50283')
         self.app.get_html('/parameters/01767')
+        self.app.get_html('/parameters/60037')
         self.app.get_json('/parameters/01767.geojson')
 
     def test_pages(self):

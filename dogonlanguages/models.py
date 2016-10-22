@@ -77,6 +77,12 @@ class Concept(CustomModelMixin, Parameter):
         return [f for f in self._files if f.mime_type.startswith('image')]
 
     @property
+    def eol_url(self):
+        eol_id = self.jsondata.get('eol_id')
+        if eol_id:
+            return 'http://eol.org/%s' % eol_id
+
+    @property
     def concepticon_url(self):
         if self.concepticon_id:
             return 'http://concepticon.clld.org/parameters/%s' % self.concepticon_id

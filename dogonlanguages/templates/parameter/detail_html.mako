@@ -28,6 +28,13 @@
             </a>
         </li>
     % endif
+    % if ctx.eol_url:
+        <li>
+            <a href="${ctx.eol_url}">
+                <span class="large label label-info">EOL</span>
+            </a>
+        </li>
+    % endif
     % if ctx.concepticon_id:
         <li>
             <a href="${ctx.concepticon_url}">

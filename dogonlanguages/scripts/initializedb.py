@@ -43,10 +43,6 @@ def main(args):
     villages = util.get_villages(args)
     ff_images = list(util.ff_images(args))
     bib = list(util.get_bib(args))
-
-    files_dir = args.data_file('files')
-    if not files_dir.exists():
-        files_dir.mkdir(parents=True)
     data = Data()
 
     dataset = common.Dataset(
