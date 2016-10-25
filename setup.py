@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 requires = [
     'clld>=3.1.1',
-    'clldmpg>=2.0.0',
+    'clldmpg>=2.2.2',
     'psycopg2',
     'fuzzywuzzy',
     'pyglottolog',
@@ -10,7 +10,7 @@ requires = [
 ]
 
 tests_require = [
-    'WebTest >= 1.3.1', # py3 compat
+    'WebTest >= 1.3.1',  # py3 compat
     'mock',
 ]
 

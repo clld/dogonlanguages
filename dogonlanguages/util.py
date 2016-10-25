@@ -6,6 +6,7 @@ from clld.db.models.common import Source
 from clld.web.util.htmllib import HTML
 from clld.web.util.helpers import icon, link
 from clldutils import misc
+from clldmpg import cdstar
 
 from dogonlanguages.models import Movie
 
@@ -41,16 +42,11 @@ def format_document_link(req, doc, label):
     )
 
 
-def cdstar_url(obj, type_='original'):
-    return 'https://cdstar.shh.mpg.de/bitstreams/{0}/{1}'.format(
-        obj.jsondata['objid'], obj.jsondata.get(type_) or obj.jsondata['original'])
+cdstar_url = cdstar.bitstream_url
 
 
-def linked_image(f):
-    return HTML.a(
-        HTML.img(src=cdstar_url(f, 'web'), class_='image'),
-        href=cdstar_url(f),
-        title="view image [{0}]".format(format_size(f)))
+def linked_image(obj):
+    return cdstar.linked_image(obj, check=False)
 
 
 def format_size(f):
@@ -84,12 +80,7 @@ def format_videos(fs):
 
 def video_detail(*objs, **kw):
     def video(mp4):
-        if mp4.jsondata.get('thumbnail'):
-            kw['poster'] = cdstar_url(mp4, type_='thumbnail')
-        return HTML.video(
-            HTML.source(src=cdstar_url(mp4), type=mp4.mime_type),
-            width='100%', controls='controls', preload='none',
-            **kw)
+        return cdstar.video(mp4, width='100%', preload='none', **kw)
 
     mp4s, name, dl = [], None, []
     if isinstance(objs[0], Movie):
