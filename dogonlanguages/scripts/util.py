@@ -584,7 +584,6 @@ def gps(args):
 
     for d in reader(
             args.data_file('repos', 'GPS_Dogon.csv'), dicts=True):
-            #args.data_file('repos', 'GPS_Dogon_spreadsheet_for_LLMAP.csv'), dicts=True):
         for k in d:
             d[k] = d[k].strip()
         if not d['OfficialVillageName']:
