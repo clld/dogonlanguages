@@ -34,6 +34,12 @@
 
 <p>After Abbie's departure in early 2013 for a post-doc at SOAS, Jeffrey Heath took over the Bangime language work. A reference grammar, and an article on the tone system, both by Heath & Hantgan, are now pending with publishers and cannot be disseminated here.</p>
 
+<p>The two following links provide "audio tours" (pdf files with embedded audio clips) that summarize how we identify Bangime tones and how they function in the morphosyntax. The files require Adobe Reader to play the audio files.</p>
+<ul>
+    <li><a href="https://cdstar.shh.mpg.de/bitstreams/EAEA0-6083-0C72-8BEA-0/Bangime_glide_audio_tour_with_audio.pdf">Bangime glide audio tour [PDF]</a></li>
+    <li><a href="https://cdstar.shh.mpg.de/bitstreams/EAEA0-DC1C-2FBD-B0FD-0/Bangime_tone_audio_tour_with_audio.pdf">Bangime tone audio tour [PDF]</a></li>
+</ul>
+
 <p>In July 2016 we hosted at our Sevare base Hiba Babiker, a graduate student in genetics at Max Planck Institute for the Study of Human History (Jena, Germany). She proceeded to collect saliva samples from Bangande (i.e. Bangime-speaking) and other villages and towns in the area (Dogon, Songhay, Bozo-Jenaama, and Fulbe). The resulting analysis will shed considerable light on population relationships in the area.</p>
 
 <p>Click on the links below for the latest lexical spreadsheet, some recently processed texts, and images of Bangime villages.</p>
