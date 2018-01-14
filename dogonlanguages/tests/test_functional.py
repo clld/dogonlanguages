@@ -1,52 +1,44 @@
-from clldutils.path import Path
+import pytest
 
-from clld.tests.util import TestWithApp
-
-import dogonlanguages
+pytest_plugins = ['clld']
 
 
-class Tests(TestWithApp):
-    __cfg__ = Path(dogonlanguages.__file__).parent.joinpath('..', 'development.ini')
+@pytest.mark.parametrize(
+    "method,path",
+    [
 
-    def test_home(self):
-        self.app.get('/')
-        self.app.get_dt('/contributors')
-        self.app.get_dt('/thesaurus.cfm')
-        self.app.get_dt('/values')
-        self.app.get_dt('/languages.cfm')
-        self.app.get_dt('/bibliography.cfm')
-        self.app.get_dt('/geography.cfm')
-        self.app.get('/contributors')
-        self.app.get('/thesaurus.cfm')
-        self.app.get('/values')
-        self.app.get('/languages.cfm')
-        self.app.get('/bibliography.cfm')
-        self.app.get('/geography.cfm')
-        self.app.get('/villages/638')
-        self.app.get_json('/geography.cfm.geojson')
-        self.app.get('/villages/1002')
-        self.app.get('/typology')
-
-    def test_parameter(self):
-        self.app.get_html('/parameters/60591')
-        self.app.get_html('/parameters/50283')
-        self.app.get_html('/parameters/01767')
-        self.app.get_html('/parameters/60037')
-        self.app.get_json('/parameters/01767.geojson')
-
-    def test_pages(self):
-        self.app.get('/other')
-        self.app.get('/florafauna.cfm')
-        self.app.get('/bangime.cfm')
-
-    def test_movies(self):
-        self.app.get('/movies')
-        self.app.get_dt('/movies')
-
-    def test_language(self):
-        self.app.get('/languages/ampa1238')
-        self.app.get_json('/languages/ampa1238.geojson')
-
-    def test_values(self):
-        self.app.get_dt('/values?parameter=00001')
-        self.app.get_dt('/values?language=ampa1238')
+        ('get_html', '/'),
+        ('get_dt', '/contributors'),
+        ('get_dt', '/thesaurus.cfm'),
+        ('get_dt', '/values'),
+        ('get_dt', '/languages.cfm'),
+        ('get_dt', '/bibliography.cfm'),
+        ('get_dt', '/geography.cfm'),
+        ('get_html', '/contributors'),
+        ('get_html', '/thesaurus.cfm'),
+        ('get_html', '/values'),
+        ('get_html', '/languages.cfm'),
+        ('get_html', '/bibliography.cfm'),
+        ('get_html', '/geography.cfm'),
+        ('get_html', '/villages/638'),
+        ('get_json', '/geography.cfm.geojson'),
+        ('get_html', '/villages/1002'),
+        ('get_html', '/typology'),
+        ('get_html', '/parameters/60591'),
+        ('get_html', '/parameters/50283'),
+        ('get_html', '/parameters/01767'),
+        ('get_html', '/parameters/60037'),
+        ('get_json', '/parameters/01767.geojson'),
+        ('get_html', '/other'),
+        ('get_html', '/florafauna.cfm'),
+        ('get_html', '/bangime.cfm'),
+        ('get_html', '/movies'),
+        ('get_dt', '/movies'),
+        ('get_html', '/languages/ampa1238'),
+        ('get_json', '/languages/ampa1238.geojson'),
+        ('get_dt', '/values?parameter=00001'),
+        ('get_dt', '/values?language=ampa1238'),
+        ('get_html', '/contributions/d'),
+    ])
+def test_pages(app, method, path):
+    getattr(app, method)(path)
