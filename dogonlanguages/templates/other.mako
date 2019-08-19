@@ -7,10 +7,7 @@
 <h2>Other Languages</h2>
 
 <p>
-    In addition to Dogon and Bangime, our NSF-funded project includes Tiefo, Seenku, and Jalkunan
-    in Burkina Faso. We have also hosted and/or supported by University of Michigan or other non-NSF
-    funds, linguists working on Jenaama (Mali), Bobo Maduré and Viemo (Burkina Faso), and Mbre (Côte d'Ivoire).
-    More information on these languages and on what we are doing or hope to do with them, is below
+In addition to Dogon and Bangime, our NSF-funded project includes Tiefo, Seenku, and Jalkunan in Burkina Faso. We have also hosted and/or supported by University of Michigan or other non-NSF funds, linguists working on Jenaama (Mali), Bobo Maduré and Viemo (Burkina Faso), and Mbre (Côte d'Ivoire). More information on these languages and on what we are doing or hope to do with them, is below
 </p>
 
 
@@ -54,21 +51,17 @@
 <p>The cliffs dialect of Jenaama has three tone levels. It also has a few "exotic" phonemes that are absent or uncommon in other languages of the zone:</p>
 <ul>
 <li>ɥ -- high front rounded semivowel (also found in Bangime)</li>
-<li>kp -- coarticulated labial velar</li>
 <li>ɯ -- back unrounded vowel</li>
 </ul>
 
-<p>Click on the links below for drafts of future grammar sections (docx format), and an initial vocabulary spreadsheet (xlxs), based on the first week of fieldwork.</p>
+<p>Click on the links below for the current draft of Heath’s Bozo-Jenaama grammar and lexical spreadsheets, representing the state of the art as of early 2019.</p>
 
 <ul>
-    % for doc in jenaama:
-        <li>
-            ${h.link(request, doc, label=doc.title)}
-        </li>
-    % endfor
+<li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/Jenaama_Bozo_grammar.docx', label='A Grammar of Jenaama Bozo of Mali, Cliffs variety')}</li>
+<li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/JH_Jenaama_lexicon.xlsx', label='Jenaama lexicon')}</li>
 </ul>
 
-<p>Heath plans to work on Jenaama for a few weeks around Christmas school vacation 2016-17, and hopes to do systematic fieldwork on Jenaama and its dialects in the next few years. The grammar fragments and the lexicon will be periodically updated on this page. </p>
+<p>Heath intends to continue working on Bozo-Jenaama and other Bozo languages as opportunities arise.</p>
 </%util:section>
 
 
@@ -84,13 +77,19 @@
 
 <p>Tiefo-D was studied by Kerstin Winkelmann in her German-language dissertation (1998), based on fieldwork 1990-94. It covers phonology, morphology, and some basics of syntax, and has a mid-sized lexicon as an appendix. In addition to Daramandougou, she also did survey work on Tiefo-N in both Noumoudara and Nyafogo, and included grammar and lexicon notes on them in her work. She observed that Tiefo-N informants, especially in Nyafogo, were semi-speakers who struggled to produce plurals of nouns, and from whom only portions of verb paradigms could be elicited.</p>
 
-<p>In 2012 we discovered that competent informants were still present in Nyafogo, and we began emergency salvage fieldwork. This was initially carried out by Abbie Hantgan. We also found that a Burkinabé linguistics student at the University of Ouagadougou, Aminata Ouattara, was also working on Tiefo-N. She is an ethnic Tiefo but not a native speaker. There were some hitches in the fieldwork due to Hantgan's departure for a post-doc at SOAS in January 2013, and Ouattara's taking a year off to work for an NGO. In August 2016 Jeffrey Heath and Ouattara teamed up to do intensive work with the last two fluent Tiefo-N speakers at our base in Bobo Dioulasso, and they plan two more weeks in October 2016. Ouattara will carry on after than. She is writing a masters-2 thesis on the language and plans a doctoral thesis later.</p>
+<p>In 2012 we discovered that competent informants were still present in Nyafogo, and we began emergency salvage fieldwork. This was initially carried out by Abbie Hantgan. We also found that a Burkinabé linguistics student at the University of Ouagadougou, Aminata Ouattara, was also working on Tiefo-N. She is an ethnic Tiefo but not a native speaker. There were some hitches in the fieldwork due to Hantgan's departure for a post-doc at SOAS in January 2013, and Ouattara's taking a year off to work for an NGO. In 2016 Heath and Ouattara teamed up to do intensive work with the last two fluent Tiefo-N speakers at our base in Bobo Dioulasso with some trips to Nyafogo village. See links below for references. Ouattara defended her master’s thesis on Tiefo-N in early 2019.</p>
+
+<p> In the period 2017-2019 Heath and Ouattara have also done extensive work on Tiefo-D, which is still spoken in some of the quartiers of Daramandougou village cluster. There are four dialects, the most divergent being that of Biton quartier. A grammar and lexical spreadsheets are at an advanced stage as of summer 2019 and will likely be finished in early summer 2020.</p>
+
+<p>A distinctive feature of Tiefo-D grammar is the use of motion verbs 'come' and 'go' in multi-clause constructions. Both verbs occur in constructions of the type 'came and VPed' and 'went and VPed', and elaborations like 'came and came and VPed' and 'went and went and VPed', and even 'came and went and VPed' (not involving round-trip motion), where the motion verbs function to highlight events, with or without involving actual motion. The second motion verb in such constructions is contracted or suppletive.</p>
+
+<p>Funding for the Tiefo-N project was from NSF, and that for the Tiefo-D project is from NEH.</p>
 
 <p>Click on the links for drafts of our own work on Tiefo-N, and English/French adaptations/summaries of Winkelmann's German-language work.</p>
 
 <ul>
-<li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/Heath_Ouattara_Hantgan_Short_Grammar_Tiefo-N.docx', label='Heath_Ouattara_Hantgan_Short_Grammar_Tiefo-N.docx')}</li>
-<li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/Heath_Ouattara_Hantgan_Tiefo-N_lexicon_spreadsheet.xlsx', label='Heath_Ouattara_Hantgan_Tiefo-N_lexicon_spreadsheet.xlsx')}</li>
+<li>${h.external_link('http://dx.doi.org/10.17617/2.2378140', label='Short grammar of Tiefo-N of Nyafogo (Gur, Burkina Faso)')}</li>
+<li>${h.external_link('https://deepblue.lib.umich.edu/data/concern/data_sets/x059c7329', label='Lexical documents Tiefo-N language of Burkina Faso')}</li>
 <li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/JH_Tiefo_notes_ex_Winkelmann.docx', label='JH_Tiefo_notes_ex_Winkelmann.docx')}</li>
 <li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/JH_Tiefo_lexicon_ex_Winkelmann.xlsx', label='JH_Tiefo_lexicon_ex_Winkelmann.xlsx')}</li>
 </ul>
@@ -130,22 +129,26 @@
 
 <p>Fieldwork on Jalkunan was carried out by project member Vu Truong in 2013-15, at our base in Bobo Dioulasso with occasional village visits. He was funded for the first year by our project, and in the second year by a Fulbright fellowship. He is now a graduate student at University of Chicago.</p>
 
-<p>Jeffrey Heath is now (9/16) working directly with a Jalkunan speaker and plans to complete a short grammar and a lexicon before May '17. A partial lexicon and some texts by Truong will also be made use of. A draft grammar and lexicon are available below.</p>
+<p>With Truong (now Tran Truong) pursuing other interests, Heath took over the Jalkunan project and worked with a speaker in 2016-2017. A grammar (with texts) and lexical spreadsheets came out of this work. </p>
 
 <ul>
-<li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/Jalkunan_grammar.docx', label='Jalkunan_grammar.docx')}</li>
-<li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/Jalkunan_lexical_spreadsheet_2016.xlsx', label='Jalkunan_lexical_spreadsheet_2016.xlsx')}</li>
+<li>${h.external_link('http://dx.doi.org/10.17617/2.2346932', label='A grammar of Jalkunan (Mande, Burkina Faso)')}</li>
+<li>${h.external_link('https://deepblue.lib.umich.edu/data/concern/data_sets/gh93gz487', label='Lexical spreadsheets Jalkunan language of Burkina Faso')}</li>
+<li>${h.external_link('https://deepblue.lib.umich.edu/data/concern/data_sets/gm80hv964', label='Mande Jalkunan Audio Files')}</li>
 </ul>
 </%util:section>
 
 
 <%util:section title="unclassified, Côte d'Ivoire" level="3" id="mbre">
-<h4>Mbre (also known as Bere, Pere)</h4>
-<p>The language known as Mbre, Bere, or Pere (Pɛrɛ) in the literature is spoken in two villages in northern Côte d'Ivoire. Its genetic position is unknown. The circulation of a core vocabulary by Denis Creissels to specialists in major language families of the zone did not result in any "hits." There was a general feeling that it was Niger-Congo and not Mande, but no specific affinity to a recognized Niger-Congo family (e.g. Kru, Kwa) was identified. A recent idea is that it is distantly related to Kwa, but "Kwa" itself is a sprawling collection of languages and its genetic validyt is suspect. It is best to consider Mbre an isolate until further notice.</p>
+<h4>Pere (also known as Mbre, Bere)</h4>
 
-<p>Mbre is entirely surrounded by Koro, a Mande language related to Jula and Bambara. Its linear order is CVOX (perfective) and C-wɔ̀-OVX (imperfective, including an aspect particle). Negation is clause-final. Suffixal morphology is modest. Two unresolved analytical problems are the nature of a nominal suffix  a, and tonal alternations in verb stems.</p>
+<p>The Pere language (pronounced pɛ́rɛ́) and previously known in the literature as Mbre, Bere, or Pɛrɛ is spoken in Bonosso village near Tienboué in northern Côte d'Ivoire. Pere is currently thought to be an independent branch of Niger-Congo. Bonosso is surrounded by villages speaking the Koro language, a Manding language related to Bambara and Jula.</p>
 
-<p>Fieldwork on Mbre has been carried out since 2014 by graduate student Ibrahima Tioté of the University of Cocody in Abidjan. He is a native Koro speaker, so he know the environment well. His funding was initially from Jeffrey Heath, and later (2016-17) from the University of Michigan. He is currently finishing a doctoral dissertation on the language. We hope to expand this into a full-fledged reference grammar, a complete lexicon with English/French glosses, and a text collection, in the next few years. Heath will join Tioté for a village visit during winter '16-'17.</p>
+<p>Pere was discovered by Deni Creissels who was working on Koro. He called attention to it after he and other Africanists he consulted with could not place it in any recognized language family.</p>
+
+<p>Beginning in 2014 Pere was studied by graduate student Ibrahima Tioté of the University of Cocody in Abidjan. He is a native Koro speaker from a nearby village, so he knows the local environment well. Heath joined with him, initially as a funding source and later as fieldworker. Tioté defended his doctoral dissertation in summer 2018. Heath did final fieldwork in Bonosso in late 2019, and Heath and Tioté did final corrections in early 2019.</p>
+
+<p>Pere linear order is CVOX (perfective) and C-wɔ̀-OVX (imperfective, including an aspect particle meaning 'be'). Negation is clause-final. Suffixal morphology is modest. There is an "absolute" suffix -à on nouns that functions in part like an article, but is not consistently definite. Verbs have tonal ablaut alternations distinguishing perfective from imperfective at the stem level. The most unusual feature of the grammar is the use of three "postposition" look-alikes in phrasal-verb combinations similar to English phrasal verbs (verb plus preposition-like particle).</p>
 </%util:section>
 
-<p>[Jeffrey Heath, last update August 2016]</p>
+<p>[Jeffrey Heath, last update July 2019]</p>
