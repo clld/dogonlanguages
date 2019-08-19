@@ -88,7 +88,7 @@ In addition to Dogon and Bangime, our NSF-funded project includes Tiefo, Seenku,
 <p>Click on the links for drafts of our own work on Tiefo-N, and English/French adaptations/summaries of Winkelmann's German-language work.</p>
 
 <ul>
-<li>${h.external_link('http://dx.doi.org/10.17617/2.2378140', label='Short grammar of Tiefo-N of Nyafogo (Gur, Burkina Faso)')}</li>
+<li>${h.external_link('https://doi.org/10.17617/2.2378140', label='Short grammar of Tiefo-N of Nyafogo (Gur, Burkina Faso)')}</li>
 <li>${h.external_link('https://deepblue.lib.umich.edu/data/concern/data_sets/x059c7329', label='Lexical documents Tiefo-N language of Burkina Faso')}</li>
 <li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/JH_Tiefo_notes_ex_Winkelmann.docx', label='JH_Tiefo_notes_ex_Winkelmann.docx')}</li>
 <li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/JH_Tiefo_lexicon_ex_Winkelmann.xlsx', label='JH_Tiefo_lexicon_ex_Winkelmann.xlsx')}</li>
@@ -132,7 +132,7 @@ In addition to Dogon and Bangime, our NSF-funded project includes Tiefo, Seenku,
 <p>With Truong (now Tran Truong) pursuing other interests, Heath took over the Jalkunan project and worked with a speaker in 2016-2017. A grammar (with texts) and lexical spreadsheets came out of this work. </p>
 
 <ul>
-<li>${h.external_link('http://dx.doi.org/10.17617/2.2346932', label='A grammar of Jalkunan (Mande, Burkina Faso)')}</li>
+<li>${h.external_link('https://doi.org/10.17617/2.2346932', label='A grammar of Jalkunan (Mande, Burkina Faso)')}</li>
 <li>${h.external_link('https://deepblue.lib.umich.edu/data/concern/data_sets/gh93gz487', label='Lexical spreadsheets Jalkunan language of Burkina Faso')}</li>
 <li>${h.external_link('https://deepblue.lib.umich.edu/data/concern/data_sets/gm80hv964', label='Mande Jalkunan Audio Files')}</li>
 </ul>
