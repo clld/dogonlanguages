@@ -22,8 +22,9 @@ and Ulrich Joger (reptiles and frogs), botanists Pierre Poilecot (deceased 2012)
 of CIRAD-Montpellier, and entomologist Henri-Pierre Aberlenc also of CIRAD-Montpellier. Thanks to
 them and to the increasing number of published guides to West African species, we are now able to
 identify most new specimens ourselves.
-Environment
 </p>
+
+<h3>Environment</h3>
 
 <p>
 Dogon inhabit an essentially continuous geographical block whose major topographic divisions are the
