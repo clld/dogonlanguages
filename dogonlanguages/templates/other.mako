@@ -151,7 +151,7 @@ In addition to Dogon and Bangime, our NSF-funded project includes Tiefo, Seenku,
 <p>Pere linear order is CVOX (perfective) and C-wɔ̀-OVX (imperfective, including an aspect particle meaning 'be'). Negation is clause-final. Suffixal morphology is modest. There is an "absolute" suffix -à on nouns that functions in part like an article, but is not consistently definite. Verbs have tonal ablaut alternations distinguishing perfective from imperfective at the stem level. The most unusual feature of the grammar is the use of three "postposition" look-alikes in phrasal-verb combinations similar to English phrasal verbs (verb plus preposition-like particle).</p>
 
 <ul>
-<li>${h.external_link('https://doi.org/10.5281/zenodo.3346581', label='A grammar of Pere (Bere, Mbre) of Côte d'Ivoire')}</li>
+<li>${h.external_link('https://doi.org/10.5281/zenodo.3346581', label="A grammar of Pere (Bere, Mbre) of Côte d'Ivoire")}</li>
 <li>${h.external_link('https://doi.org/10.5281/zenodo.3354193', label='Pere lexicon [Data set]')}</li>
 <li>${h.external_link('https://doi.org/10.5281/zenodo.3354206', label='Pere lexicon of flora and fauna [Data set]')}</li>
 </ul>

@@ -1,5 +1,3 @@
-from __future__ import unicode_literals, division, absolute_import, print_function
-
 from sqlalchemy.orm import joinedload
 
 from clld.interfaces import IParameter, ILanguage

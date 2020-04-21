@@ -1,7 +1,7 @@
 from functools import partial
 
 from pyramid.config import Configurator
-from sqlalchemy.orm import joinedload_all, joinedload
+from sqlalchemy.orm import joinedload
 
 from clld.web.app import menu_item, CtxFactoryQuery
 from clld.db.models import common
@@ -29,9 +29,8 @@ class CustomFactoryQuery(CtxFactoryQuery):
         """
         if model == common.Contribution:
             query = query.options(
-                joinedload_all(
-                    common.Contribution.references,
-                    common.ContributionReference.source),
+                joinedload(common.Contribution.references)
+                .joinedload(common.ContributionReference.source),
                 joinedload(common.Contribution.data),
             )
         return query

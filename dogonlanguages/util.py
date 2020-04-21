@@ -1,7 +1,5 @@
-from __future__ import unicode_literals
 from math import floor
 
-from six import text_type
 from clld.db.models.common import Source
 from clld.web.util.htmllib import HTML
 from clld.web.util.helpers import icon, link
@@ -114,7 +112,7 @@ def format_coordinates(obj):
         if seconds:
             fmt += '{2:0>.2f}"'
         fmt += hemispheres[0] if dec > 0 else hemispheres[1]
-        return text_type(fmt).format(degrees, minutes, seconds)
+        return str(fmt).format(degrees, minutes, seconds)
 
     lines = [
         '%s, %s;' % (degminsec(obj.latitude, 'NS'), degminsec(obj.longitude, 'EW')),

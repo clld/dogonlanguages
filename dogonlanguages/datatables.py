@@ -1,7 +1,6 @@
-from __future__ import unicode_literals
 from textwrap import wrap
 
-from sqlalchemy.orm import joinedload_all, joinedload
+from sqlalchemy.orm import joinedload
 
 from clld.web.datatables.value import Values
 from clld.web.datatables.parameter import Parameters
@@ -127,11 +126,10 @@ class Words(Values):
             .join(models.Subdomain)\
             .join(models.Domain)\
             .options(
-                joinedload_all(
-                    common.Value.valueset,
-                    common.ValueSet.parameter,
-                    models.Concept.subdomain,
-                    models.Subdomain.domain),
+                joinedload(common.Value.valueset)
+                .joinedload(common.ValueSet.parameter)
+                .joinedload(models.Concept.subdomain)
+                .joinedload(models.Subdomain.domain),
                 joinedload(common.Value.valueset, common.ValueSet.language)
             )
         if self.ff:
