@@ -113,7 +113,9 @@ class Words(Values):
         query = query.join(common.ValueSet)
 
         if self.language:
-            query = query.join(common.ValueSet.parameter)
+            query = query.join(common.ValueSet.parameter)\
+                .join(models.Subdomain)\
+                .join(models.Domain)
             return query.filter(common.ValueSet.language_pk == self.language.pk)
 
         if self.parameter:
