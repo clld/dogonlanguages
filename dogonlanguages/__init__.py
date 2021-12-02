@@ -46,8 +46,8 @@ def main(global_config, **settings):
         'languages': '/languages.cfm',
         'florafauna': '/florafauna.cfm',
         'bangime': '/bangime.cfm',
-        'file': '/_files/{id:[^/\.]+}',
-        'file_alt': '/_files/{id:[^/\.]+}.{ext}',
+        'file': r'/_files/{id:[^/\.]+}',
+        'file_alt': r'/_files/{id:[^/\.]+}.{ext}',
     }
     config = Configurator(settings=settings)
     config.include('clldmpg')

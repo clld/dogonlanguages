@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 import sys
 from collections import defaultdict
 from mimetypes import guess_type
@@ -11,7 +10,7 @@ from clldutils.misc import slug, nfilter
 from clldutils.path import Path
 from clldutils import jsonlib
 
-from clld.scripts.util import initializedb, Data, bibtex2source, add_language_codes
+from clld.cliutil import Data, bibtex2source, add_language_codes
 from clld.db.meta import DBSession
 from clld.db.models import common
 try:
@@ -306,7 +305,3 @@ def prime_cache(args):
         if concept.name in concepticon:
             concept.concepticon_id = int(concepticon[concept.name])
 
-
-if __name__ == '__main__':
-    initializedb(create=main, prime_cache=prime_cache)
-    sys.exit(0)

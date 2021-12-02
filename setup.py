@@ -20,11 +20,11 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'clld>=6',
-        'clldmpg>=3.5',
+        'clld>=8',
+        'clldmpg>=4.2',
         'fuzzywuzzy',
         'pyglottolog',
-        'sqlalchemy',
+        'sqlalchemy>=1.4.26',
         'waitress',
     ],
     extras_require={
