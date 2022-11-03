@@ -11,7 +11,7 @@ from dogonlanguages.interfaces import IVillage
 from dogonlanguages.scripts.data import LANGUAGES
 
 
-OPTIONS = {'show_labels': True, 'max_zoom': 12, 'base_layer': "Esri.WorldImagery"}
+OPTIONS = {'show_labels': True, 'max_zoom': 12}
 
 
 class VillageGeoJson(GeoJson):
