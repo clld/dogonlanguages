@@ -8,7 +8,6 @@ from datetime import date
 
 from purl import URL
 import attr
-from fuzzywuzzy import fuzz
 from clldutils.dsv import reader
 from clldutils.path import Path
 from clldutils.jsonlib import load
@@ -75,6 +74,7 @@ def iter_files(args):
 
 
 def get_contributors(rec, data):
+    from fuzzywuzzy import fuzz
     for author in re.split('\s+and\s+', unescape(rec['author'])):
         for cid, obj in data['Member'].items():
             if fuzz.token_sort_ratio(author, obj.name) >= 92:

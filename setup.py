@@ -22,7 +22,6 @@ setup(
     install_requires=[
         'clld>=9.2.2',
         'clldmpg>=4.2',
-        'fuzzywuzzy',
         'pyglottolog',
         'sqlalchemy>=1.4.26',
         'waitress',

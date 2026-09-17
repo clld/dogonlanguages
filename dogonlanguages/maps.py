@@ -128,11 +128,12 @@ class VillagesMap(Map):
             return HTML.h5(label, style='padding-left:5px;margin-top:0;margin-bottom:0')
 
         def make_item(label, icon):
+            from clldutils import svg
             return HTML.span(
                 HTML.img(
                     width=16,
                     height=16,
-                    src=self.req.static_url('clld:web/static/icons/%s.png' % icon)),
+                    src=svg.data_url(svg.icon(icon))),
                 HTML.span(label, style='padding-left:5px'),
                 style='padding-left:5px')
 
