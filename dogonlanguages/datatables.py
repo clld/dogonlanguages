@@ -271,7 +271,7 @@ class ViewCol(Col):
     def format(self, item):
         return HTML.a(
             icon('eye-open'),
-            href=util.cdstar_url(item),
+            href=util.bitstream_url(item),
             title='view',
             class_="btn")
 
@@ -318,7 +318,7 @@ class FileCol(Col):
     def format(self, item):
         f = item.get_file(self.subtype)
         if f:
-            return HTML.a(' ' + util.format_file(f, with_mime_type=False), href=util.cdstar_url(f))
+            return HTML.a(' ' + util.format_file(f, with_mime_type=False), href=util.bitstream_url(f))
         return ''
 
 

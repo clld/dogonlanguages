@@ -54,12 +54,8 @@ In addition to Dogon and Bangime, our NSF-funded project includes Tiefo, Seenku,
 <li>ɯ -- back unrounded vowel</li>
 </ul>
 
-<p>Click on the links below for the current draft of Heath’s Bozo-Jenaama grammar and lexical spreadsheets, representing the state of the art as of early 2019.</p>
-
-<ul>
-<li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/Jenaama_Bozo_grammar.docx', label='A Grammar of Jenaama Bozo of Mali, Cliffs variety')}</li>
-<li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/JH_Jenaama_lexicon.xlsx', label='Jenaama lexicon')}</li>
-</ul>
+<p>The current draft of Heath’s Bozo-Jenaama grammar and lexical spreadsheets, representing the state of the art as of early 2019, can be found
+${h.external_link('https://zenodo.org/records/22857885/files/dogonlanguages-data-v1.0.zip?download=1', label='here')}.</p>
 
 <p>Heath intends to continue working on Bozo-Jenaama and other Bozo languages as opportunities arise.</p>
 </%util:section>
@@ -90,8 +86,7 @@ In addition to Dogon and Bangime, our NSF-funded project includes Tiefo, Seenku,
 <ul>
 <li>${h.external_link('https://doi.org/10.17617/2.2378140', label='Short grammar of Tiefo-N of Nyafogo (Gur, Burkina Faso)')}</li>
 <li>${h.external_link('https://deepblue.lib.umich.edu/data/concern/data_sets/x059c7329', label='Lexical documents Tiefo-N language of Burkina Faso')}</li>
-<li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/JH_Tiefo_notes_ex_Winkelmann.docx', label='JH_Tiefo_notes_ex_Winkelmann.docx')}</li>
-<li>${h.external_link('https://github.com/clld/dogonlanguages-data/raw/master/beta/literature/JH_Tiefo_lexicon_ex_Winkelmann.xlsx', label='JH_Tiefo_lexicon_ex_Winkelmann.xlsx')}</li>
+<li>${h.external_link('https://zenodo.org/records/22857885/files/dogonlanguages-data-v1.0.zip?download=1', label='Material on Zenodo')}</li>
 </ul>
 
 

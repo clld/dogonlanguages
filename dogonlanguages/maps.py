@@ -8,7 +8,7 @@ from clld.web.icon import MapMarker as BaseMapMarker
 from clldutils.misc import dict_merged
 
 from dogonlanguages.interfaces import IVillage
-from dogonlanguages.scripts.data import LANGUAGES
+from dogonlanguages.data import LANGUAGES
 
 
 OPTIONS = {'show_labels': True, 'max_zoom': 12}

@@ -1,12 +1,40 @@
 from math import floor
+import mimetypes
 
 from clld.db.models.common import Source
-from clld.web.util.htmllib import HTML
+from clld.web.util.htmllib import HTML, literal
 from clld.web.util.helpers import icon, link
 from clldutils import misc
-from clldmpg import cdstar
 
 from dogonlanguages.models import Movie
+from .cdstar2s3 import MAPPING
+
+ICON_FOR_MIMETYPE = {
+    'facetime-video': [
+        'video',
+    ],
+    'camera': [
+        'image',
+    ],
+    'headphones': [
+        'audio',
+    ],
+    'file': [
+        'text',
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ],
+    'list': [
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/csv',
+    ],
+}
+MIMETYPE_TO_ICON = {}
+for icon_, types_ in ICON_FOR_MIMETYPE.items():
+    for type_ in types_:
+        MIMETYPE_TO_ICON[type_] = icon_
 
 
 def tsammalex_link(request, concept):
@@ -36,15 +64,24 @@ def concepticon_link(request, concept):
 def format_document_link(req, doc, label):
     return HTML.tr(
         HTML.td(link(req, doc, label=label)),
-        HTML.td(*[HTML.a(format_file(f), href=cdstar_url(f)) for f in doc._files])
+        HTML.td(*[HTML.a(format_file(f), href=bitstream_url(f)) for f in doc._files])
     )
 
 
-cdstar_url = cdstar.bitstream_url
+def bitstream_url(obj, type_='original'):
+    try:
+        fname = MAPPING['-'.join([obj.jsondata['objid'], obj.jsondata[type_] or obj.jsondata['original']])]
+    except:
+        print(obj.jsondata)
+        raise
+    return "https://s3.nexus.mpcdf.mpg.de/eva-dlce-dogonlanguages/" + fname
 
 
 def linked_image(obj):
-    return cdstar.linked_image(obj, check=False)
+    return HTML.a(
+        HTML.img(src=bitstream_url(obj, 'web'), class_='image'),
+        href=bitstream_url(obj),
+        title=f"View image ({format_size(obj)})")
 
 
 def format_size(f):
@@ -72,13 +109,63 @@ def format_file(f, with_mime_type=True):
 
 def format_videos(fs):
     return HTML.ul(
-        *[HTML.li(HTML.a(' ' + format_file(f), href=cdstar_url(f))) for f in fs],
+        *[HTML.li(HTML.a(' ' + format_file(f), href=bitstream_url(f))) for f in fs],
         **dict(class_='unstyled'))
 
 
+def vlink(obj, label=None):
+    label = label or 'View file'
+    mtype = mimetype(obj)
+    icon_ = MIMETYPE_TO_ICON.get(
+        mtype, MIMETYPE_TO_ICON.get('video', 'download-alt'))
+    md = ''
+    if obj.jsondata.get('size'):
+        md = format_size(obj)
+    if md:
+        md += ', '
+    md += mtype
+    if md:
+        label += ' (%s)' % md
+    return HTML.a(
+        HTML.span(
+            icon(icon_),
+            ' ' + label,
+            class_='cdstar_link'),
+        href=bitstream_url(obj))
+
+
+def mimetype(obj):
+    if hasattr(obj, 'mimetype'):
+        return obj.mimetype
+    if hasattr(obj, 'mime_type'):
+        return obj.mime_type
+    for key in [
+        'mediaType',  # CLDF property name
+        'Media_Type',  # CLDF default column name
+        'mimetype',
+        'mime_type',
+    ]:
+        if obj.jsondata.get(key):
+            return obj.jsondata[key]
+    return mimetypes.guess_type(obj.jsondata['original'])[0] or 'application/octet-stream'
+
+
 def video_detail(*objs, **kw):
-    def video(mp4):
-        return cdstar.video(mp4, width='100%', preload='none', **kw)
+    def video(mp4, **kw):
+        kw.update(width='100%', preload='none')
+        if mp4.jsondata.get('thumbnail'):
+            kw['poster'] = bitstream_url(mp4, type_='thumbnail')
+        label = kw.pop('label', None)
+        kw.setdefault('controls', 'controls')
+        media_element = getattr(HTML, 'video')(
+            literal(f'Your browser does not support the <code>video</code> element.'),
+            HTML.source(src=bitstream_url(mp4, type_='web'), type=mimetype(mp4)), **kw)
+        return HTML.div(
+            media_element,
+            HTML.br(),
+            vlink(mp4, label=label),
+            class_=f'cdstar_video_link',
+            style='margin-top: 10px')
 
     mp4s, name, dl = [], None, []
     if isinstance(objs[0], Movie):
